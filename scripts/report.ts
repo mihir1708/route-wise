@@ -1,0 +1,10 @@
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { reportArtifacts } from '../eval/report';
+const [input, output = 'eval/reports'] = process.argv.slice(2);
+if (!input) throw new Error('Usage: eval:report RUN.json [DIRECTORY]');
+const run = JSON.parse(readFileSync(input,'utf8'));
+const artifacts = reportArtifacts(run); const dir = resolve(output); mkdirSync(dir,{recursive:true});
+writeFileSync(`${dir}/report.json`,JSON.stringify(artifacts.report,null,2)+'\n');
+writeFileSync(`${dir}/report.csv`,artifacts.csv); writeFileSync(`${dir}/report.md`,artifacts.md);
+console.log(dir);

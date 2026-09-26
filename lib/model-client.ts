@@ -1,18 +1,15 @@
+import { getModel } from '@/lib/model-registry';
 // Wrapper for calling OpenAI models
 
 import OpenAI from 'openai';
 import { ModelName, ModelResponse } from '@/types';
 import { logger } from '@/utils/logger';
 
-const apiKey = process.env.OPENAI_API_KEY;
-
-if (!apiKey) {
-  throw new Error('OPENAI_API_KEY environment variable is required');
+function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OpenAI is not configured');
+  return new OpenAI({ apiKey, timeout: 60000, maxRetries: 0 });
 }
-
-const openai = new OpenAI({
-  apiKey: apiKey,
-});
 
 // Send a query to the specified model
 export async function callModel(
@@ -24,7 +21,9 @@ export async function callModel(
   try {
     logger.info(`Calling model: ${model}`, { query_length: query.length });
 
-    const response = await openai.chat.completions.create({
+    const config = getModel(model);
+    if (!config.enabled) throw new Error('Model disabled');
+    const response = await getOpenAI().chat.completions.create({
       model: model,
       messages: [
         {
@@ -36,17 +35,17 @@ export async function callModel(
           content: query
         }
       ],
-      temperature: model === 'gpt-4' ? 0.7 : 0.5,
-      max_tokens: 1000,
+      temperature: config.temperature,
+      max_tokens: config.maxOutputTokens,
     });
 
     const endTime = Date.now();
     const duration = endTime - startTime;
 
     const content = response.choices[0]?.message?.content || '';
-    const promptTokens = response.usage?.prompt_tokens || 0;
-    const completionTokens = response.usage?.completion_tokens || 0;
-    const totalTokens = response.usage?.total_tokens || 0;
+    const promptTokens = response.usage?.prompt_tokens ?? NaN;
+    const completionTokens = response.usage?.completion_tokens ?? NaN;
+    const totalTokens = response.usage?.total_tokens ?? NaN;
 
     logger.info(`Model response received in ${duration}ms`, {
       model,
@@ -63,7 +62,7 @@ export async function callModel(
   } catch (error: any) {
     logger.error('Error calling model', {
       model,
-      error: error.message
+      status: typeof error.status === 'number' ? error.status : null
     });
 
     // Handle common API errors
@@ -75,14 +74,14 @@ export async function callModel(
       throw new Error('Model is currently overloaded. Please try again.');
     }
 
-    throw new Error(`Failed to get response from ${model}: ${error.message}`);
+    throw new Error(`Failed to get response from ${model}`);
   }
 }
 
 // Test if OpenAI API key works
 export async function testConnection(): Promise<boolean> {
   try {
-    await openai.models.list();
+    await getOpenAI().models.list();
     return true;
   } catch (error) {
     logger.error('OpenAI connection test failed', error);
