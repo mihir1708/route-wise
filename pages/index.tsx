@@ -1,3 +1,5 @@
+import type { GetServerSideProps } from 'next';
+import { protect } from '@/lib/access';
 // Main page - chat interface for testing the router
 
 import { useState } from 'react';
@@ -5,6 +7,7 @@ import Head from 'next/head';
 import { RouteQueryResponse } from '@/types';
 
 export default function Home() {
+  const [verifyConsent, setVerifyConsent] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<RouteQueryResponse | null>(null);
@@ -28,7 +31,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, verify_consent: verifyConsent }),
       });
 
       const data = await res.json();
@@ -46,8 +49,8 @@ export default function Home() {
     }
   };
 
-  const getModelColor = (model: string) => {
-    if (model === 'gpt-4') return 'text-purple-600 bg-purple-100';
+  const getModelColor = (tier: string) => {
+    if (tier === 'high') return 'text-purple-600 bg-purple-100';
     return 'text-green-600 bg-green-100';
   };
 
@@ -100,6 +103,10 @@ export default function Home() {
                 rows={4}
                 disabled={loading}
               />
+              <label className="block text-sm text-gray-600 mt-3">
+                <input type="checkbox" checked={verifyConsent} onChange={e => setVerifyConsent(e.target.checked)} />{' '}
+                Allow sampled quality verification (24-hour question/answer expiry; deletion by scheduled cleanup).
+              </label>
               <button
                 type="submit"
                 disabled={loading || !query.trim()}
@@ -123,6 +130,7 @@ export default function Home() {
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Response</h2>
               
+              {response.metadata.accounting_status !== 'settled' && <p className="text-amber-700 mb-4">Answer received, but accounting needs reconciliation. Request: {response.metadata.request_id}</p>}
               {/* AI Answer */}
               <div className="bg-gray-50 rounded-lg p-6 mb-6">
                 <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -134,7 +142,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="text-sm text-gray-600 mb-1">Model Used</div>
-                  <div className={`inline-block px-3 py-1 rounded-full font-semibold ${getModelColor(response.metadata.model_used)}`}>
+                  <div className={`inline-block px-3 py-1 rounded-full font-semibold ${getModelColor(response.metadata.model_tier)}`}>
                     {response.metadata.model_used}
                   </div>
                 </div>
@@ -164,7 +172,7 @@ export default function Home() {
               {/* Budget Info */}
               <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-600">Budget Remaining</span>
+                  <span className="text-sm font-medium text-gray-600">Estimated Budget Remaining</span>
                   <span className="text-lg font-bold text-gray-900">
                     ${response.metadata.remaining_budget.toFixed(2)}
                   </span>
@@ -173,7 +181,7 @@ export default function Home() {
                   <div
                     className="bg-green-500 h-full transition-all duration-300"
                     style={{
-                      width: `${(response.metadata.remaining_budget / 100) * 100}%`
+                      width: `${Math.min(100, (response.metadata.remaining_budget / response.metadata.budget_limit) * 100)}%`
                     }}
                   />
                 </div>
@@ -220,3 +228,8 @@ export default function Home() {
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+  protect(req, res, 'demo', false);
+  return { props: {} };
+};

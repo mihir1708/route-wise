@@ -39,3 +39,8 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# Evaluation outputs may contain answers; do not publish automatically.
+/eval/runs/
+/eval/reports/
+/eval/reviews/

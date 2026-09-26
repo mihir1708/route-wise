@@ -1,0 +1,18 @@
+{
+  "version": "ci-fixtures-v1",
+  "provenance": "Manually specified software test expectations; not recorded model outputs, not human-reviewed benchmark cases",
+  "cases": [
+    { "id": "short", "prompt": "explain", "budget": 0, "difficulty": 0.2, "model": "gpt-3.5-turbo" },
+    { "id": "word-boundary", "prompt": "explain zz zz?", "budget": 0, "difficulty": 0.25, "model": "gpt-3.5-turbo" },
+    { "id": "calculate", "prompt": "calculate zz zz zz?", "budget": 0, "difficulty": 0.7, "model": "gpt-3.5-turbo" },
+    { "id": "hard", "prompt": "explain zz zz zz?", "budget": 0, "difficulty": 0.8, "model": "gpt-4" },
+    { "id": "budget-80", "prompt": "explain zz zz zz?", "budget": 80, "difficulty": 0.8, "model": "gpt-3.5-turbo" },
+    { "id": "budget-90", "prompt": "explain zz zz zz?", "budget": 90, "difficulty": 0.8, "model": "gpt-3.5-turbo" }
+  ],
+  "scoring_fixtures": [
+    { "case_id": "classify-positive", "response": "positive", "score": 1 },
+    { "case_id": "classify-positive", "response": "negative", "score": 0 },
+    { "case_id": "extract-zero", "response": "{\"count\":0,\"active\":false}", "score": 1 },
+    { "case_id": "json-person", "response": "{\"name\":\"Ada\",\"age\":\"36\"}", "score": 0 }
+  ]
+}

@@ -1,6 +1,7 @@
 // Type definitions for the project
 
-export type ModelName = 'gpt-3.5-turbo' | 'gpt-4';
+// Historical model strings are retained even when runtime configuration changes.
+export type ModelName = string;
 
 export type DifficultyScore = number;
 
@@ -44,6 +45,10 @@ export interface RouteQueryResponse {
     tokens_used: number;
     cost: number;
     remaining_budget: number;
+    budget_limit: number;
+    model_tier: import('@/lib/model-registry').ModelTier;
+    accounting_status: string;
+    request_id: string;
   };
 }
 
@@ -65,17 +70,14 @@ export interface ModelResponse {
   total_tokens: number;
 }
 
-// Admin dashboard stats
+// Admin data is production telemetry only, for one UTC calendar month.
 export interface UsageStats {
-  total_requests: number;
-  total_cost: number;
-  budget_remaining: number;
-  model_distribution: {
-    [key: string]: number;
-  };
-  recent_logs: RouterLog[];
-  daily_costs: {
-    date: string;
-    cost: number;
-  }[];
+  total_requests: number; total_cost: number; budget_remaining: number;
+  budget_limit: number; accounted_spend: number; failed_requests: number;
+  unsettled_requests: number; unknown_usage_requests: number;
+  window_start: string; window_end: string;
+  model_distribution: Record<string, number>; tier_distribution: Record<string, number>;
+  policy_distribution: Record<string, number>;
+  recent_logs: import('@/lib/request-run').RequestRun[];
+  daily_costs: { date: string; cost: number | null }[];
 }

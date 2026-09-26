@@ -2,17 +2,12 @@
 
 import { PricingTable, ModelName } from '@/types';
 
-// Pricing per 1K tokens (as of January 2026)
-export const PRICING: PricingTable = {
-  'gpt-3.5-turbo': {
-    prompt: 0.0015,
-    completion: 0.002
-  },
-  'gpt-4': {
-    prompt: 0.03,
-    completion: 0.06
-  }
-};
+import { LEGACY_MODELS, getModel } from '@/lib/model-registry';
+// Compatibility export for the v1 baseline; prices originate in the registry.
+export const PRICING: PricingTable = Object.fromEntries(LEGACY_MODELS.map(model => [model.id, {
+  prompt: model.inputPricePerMillion / 1000,
+  completion: model.outputPricePerMillion / 1000,
+}]));
 
 // Calculate cost based on token usage
 export function calculateCost(
@@ -20,7 +15,8 @@ export function calculateCost(
   promptTokens: number,
   completionTokens: number
 ): number {
-  const pricing = PRICING[model];
+  const config = getModel(model);
+  const pricing = { prompt: config.inputPricePerMillion / 1000, completion: config.outputPricePerMillion / 1000 };
   
   if (!pricing) {
     throw new Error(`Unknown model: ${model}`);
