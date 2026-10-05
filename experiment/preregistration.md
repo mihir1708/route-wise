@@ -78,4 +78,4 @@ A failed or refused request counts as a failure and is never dropped.
 - **Prices change.** They come from the providers' pricing pages as of the pricing version, so savings are relative to those prices.
 - **Latency depends on conditions.** It includes provider load at run time and the concurrency of 4.
 
-Approved by: pending
+Approved by: Mihir Mukhi, 2026-10-05
