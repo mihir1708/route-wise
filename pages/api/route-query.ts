@@ -15,7 +15,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let tenant;
   try { tenant = await findTenantByName(DEMO_TENANT); } catch { tenant = null; }
   if (!tenant?.active) return res.status(503).json({ error: 'demo_tenant_unavailable', request_id: requestId });
-  const result = await runGateway({ task_type: 'chat', input: req.body?.query }, tenant, requestId);
+  // No response cache here: the UI shows the live budget, which a cache hit does not read.
+  const result = await runGateway({ task_type: 'chat', input: req.body?.query, cache: false }, tenant, requestId);
   for (const [name, value] of Object.entries(result.headers)) res.setHeader(name, value);
   if (result.status !== 200) return res.status(result.status).json(result.body);
   const m = result.body.metadata as Record<string, unknown> & { tokens: { total: number } };
