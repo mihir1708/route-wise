@@ -21,7 +21,15 @@ I then measured it: a pre-registered experiment on whether routing keeps answer 
 
 The [demo page](https://route-wise-six.vercel.app) runs any of six support tasks through the real gateway. Pick a sample ticket or write your own, and it shows the answer plus how it was routed: the tier and model, the reasons, what it cost, how long it took, and how much of the demo's budget is left.
 
+![The demo page after a classify request: the answer, then how it was routed (low tier, gpt-5.6-luna), with cost, latency, tokens and the demo budget left](screenshots/demo.png)
+
 The demo runs as a tenant with a **$1 monthly budget** and 10 requests a minute, shared by every visitor. When either runs out, the gateway refuses requests, which is the budget enforcement working as designed. An admin dashboard at `/admin` (password-protected) charts traffic by tier, latency, cost per successful request, and cache, fallback and rate-limit rates.
+
+![The admin dashboard: request count, success rate, cost per successful request, latency and traffic by tier](screenshots/dashboard.png)
+
+Further down, it shows requests per day, the benchmark baseline next to live traffic, and the most recent requests:
+
+![The rest of the admin dashboard: requests per day, the benchmark quality baseline, model accounting and recent requests](screenshots/dashboard-details.png)
 
 ## How it works
 
