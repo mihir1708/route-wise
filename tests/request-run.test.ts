@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { cacheKey, estimateInputTokens, executeGenerate, parseGenerateRequest, type GenerateDependencies } from '@/lib/request-run';
 import type { ModelConfig } from '@/lib/model-registry';
+import { ProviderError } from '@/lib/providers';
 import { CircuitBreaker } from '@/lib/resilience';
 import { getPrompt } from '@/prompts';
 
@@ -76,6 +77,26 @@ it('does not retry a non-transient error; it goes straight to the fallback', asy
   const r = await executeGenerate(body(), TENANT, d);
   expect(calledModels(d)).toEqual(['o-high', 'a-high']); expect(d.sleep).not.toHaveBeenCalled();
   expect(r.attempts[0]).toMatchObject({ error_kind: 'auth', http_status: 401 });
+});
+
+it('charges the tokens billed for an empty answer, then falls back', async () => {
+  const d = deps();
+  d.call = vi.fn().mockRejectedValueOnce(new ProviderError('empty', null, null, { prompt_tokens: 10, completion_tokens: 1000 })).mockResolvedValue(OK);
+  const r = await executeGenerate(body(), TENANT, d);
+  expect(r.status).toBe(200); expect(calledModels(d)).toEqual(['o-high', 'a-high']);
+  expect(r.attempts[0]).toMatchObject({ error_kind: 'empty', prompt_tokens: 10, completion_tokens: 1000, cost_usd: expect.closeTo(0.0101, 12) });
+  // 1,010 tokens for the empty answer plus 30 for the fallback's answer, both at $10 per million.
+  expect(r.run).toMatchObject({ cost_usd: expect.closeTo(0.0104, 12), prompt_tokens: 20, completion_tokens: 1020 });
+  expect(r.body.metadata).toMatchObject({ cost_usd: expect.closeTo(0.0104, 12), tokens: { input: 20, output: 1020, total: 1040 } });
+  expect(d.settle).toHaveBeenCalledWith(expect.closeTo(0.0104, 12), 'a-high', 'high');
+});
+
+it('charges billed empty answers even when every provider fails', async () => {
+  const d = deps(); d.call = vi.fn().mockRejectedValue(new ProviderError('empty', null, null, { prompt_tokens: 10, completion_tokens: 90 }));
+  const r = await executeGenerate(body(), TENANT, d);
+  expect(r.status).toBe(502); expect(calledModels(d)).toEqual(['o-high', 'a-high']);
+  expect(r.run).toMatchObject({ error_category: 'all_providers_failed', cost_usd: expect.closeTo(0.002, 12) });
+  expect(d.settle).toHaveBeenCalledWith(expect.closeTo(0.002, 12), 'o-high', 'high');
 });
 
 it('moves to the fallback instead of waiting out a long Retry-After', async () => {
@@ -277,7 +298,7 @@ describe('response cache', () => {
     const d = withCache(); d.cacheGet = vi.fn().mockRejectedValue(new Error('down'));
     d.call = vi.fn().mockResolvedValue({ ...OK, truncated: true });
     const r = await executeGenerate(body(), TENANT, d);
-    expect(r.status).toBe(200); expect(d.cachePut).not.toHaveBeenCalled();
+    expect(r.status).toBe(200); expect(d.cachePut).not.toHaveBeenCalled(); expect(r.body.metadata).toMatchObject({ truncated: true });
   });
 
   it('ignores a cached JSON answer that no longer matches the schema', async () => {

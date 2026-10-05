@@ -97,6 +97,15 @@ export const PROMPTS: readonly PromptTemplate[] = [
     render: ticket,
   },
   {
+    // v1 set no length, so answers ran past the output cap: models without reasoning headroom were cut
+    // off mid-sentence, and reasoning models could spend the whole budget before answering.
+    task: 'troubleshoot', version: 'v2', output: 'text', maxOutputTokens: 1000,
+    system: 'You are a senior support engineer. Diagnose the problem in the ticket step by step: list the most likely '
+      + 'causes in order, the evidence for each, and concrete steps to confirm and fix it. Flag anything risky. '
+      + 'Keep the whole answer under 500 words.',
+    render: ticket,
+  },
+  {
     // The original RouteWise chat behavior, kept for the chat UI and the v1 routing tests.
     task: 'chat', version: 'v1', output: 'text', maxOutputTokens: 1000,
     system: 'You are a helpful assistant that provides accurate and concise answers to user questions.',

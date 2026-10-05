@@ -30,7 +30,7 @@ export const GATEWAY_REGISTRY_VERSION = 'gateway-2026-10';
 export const GATEWAY_MODELS: readonly ModelConfig[] = [
   { id: 'gpt-5.6-luna', provider: 'openai', tier: 'low', inputPricePerMillion: 0.2, outputPricePerMillion: 1.2, enabled: true, temperature: null, maxOutputTokens: 1000, pricingVersion: GATEWAY_REGISTRY_VERSION, reasoningEffort: 'none' },
   { id: 'claude-haiku-4-5', provider: 'anthropic', tier: 'low', inputPricePerMillion: 1, outputPricePerMillion: 5, enabled: true, temperature: null, maxOutputTokens: 1000, pricingVersion: GATEWAY_REGISTRY_VERSION },
-  { id: 'gpt-5.6-terra', provider: 'openai', tier: 'mid', inputPricePerMillion: 2, outputPricePerMillion: 12, enabled: true, temperature: null, maxOutputTokens: 1000, pricingVersion: GATEWAY_REGISTRY_VERSION, reasoningEffort: 'low', reasoningHeadroomTokens: 1000 },
+  { id: 'gpt-5.6-terra', provider: 'openai', tier: 'mid', inputPricePerMillion: 2, outputPricePerMillion: 12, enabled: true, temperature: null, maxOutputTokens: 1000, pricingVersion: GATEWAY_REGISTRY_VERSION, reasoningEffort: 'low', reasoningHeadroomTokens: 2000 },
   { id: 'claude-sonnet-5-5', provider: 'anthropic', tier: 'mid', inputPricePerMillion: 2, outputPricePerMillion: 10, enabled: true, temperature: null, maxOutputTokens: 1000, pricingVersion: GATEWAY_REGISTRY_VERSION, reasoningEffort: 'low', thinking: 'off' },
   { id: 'gpt-5.6-sol', provider: 'openai', tier: 'high', inputPricePerMillion: 5, outputPricePerMillion: 30, enabled: true, temperature: null, maxOutputTokens: 1000, pricingVersion: GATEWAY_REGISTRY_VERSION, reasoningEffort: 'low', reasoningHeadroomTokens: 2000 },
   // Thinking cannot be disabled on Opus 5.5; low effort plus headroom keeps it bounded.

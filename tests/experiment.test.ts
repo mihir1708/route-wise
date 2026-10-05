@@ -1,11 +1,12 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import type { ModelConfig } from '@/lib/model-registry';
 import { GATEWAY_MODELS } from '@/lib/model-registry';
+import { ProviderError } from '@/lib/providers';
 import { benchmarkHash, validateBenchmark, type Benchmark, type BenchmarkItem } from '@/experiment/benchmark';
 import { judgeWorstCase, makeJudge, plannedJobs, requestBody, runExperiment, SpendLimitReached, type ExperimentDependencies, type ItemResult } from '@/experiment/harness';
 import { planExperiment } from '@/experiment/plan';
-import { checkPreregistration, DEFAULT_RUNS, pinnedValues, renderPinned } from '@/experiment/preregistration';
+import { checkPreregistration, DEFAULT_RUNS, renderPinned } from '@/experiment/preregistration';
 import { percentile, renderMarkdown, summarize } from '@/experiment/report';
 import { fieldMatches, judgeRequest, parseJudge, scoreStructured } from '@/experiment/scoring';
 
@@ -158,6 +159,14 @@ describe('harness', () => {
     expect(call.mock.calls[0][2]).toMatchObject({ maxOutputTokens: 300 });
   });
 
+  it('counts the tokens billed for an empty verdict before the fallback judge answers', async () => {
+    const call = vi.fn()
+      .mockRejectedValueOnce(new ProviderError('empty', null, null, { prompt_tokens: 1000, completion_tokens: 300 }))
+      .mockResolvedValueOnce({ content: '{"score": 5, "reason": "Complete."}', prompt_tokens: 1000, completion_tokens: 10, total_tokens: 1010 });
+    const verdict = await makeJudge(JUDGES, call, async () => {})(MINI.items[1], 'answer');
+    expect(verdict).toEqual({ score: 5, reason: 'Complete.', cost_usd: expect.closeTo((1300 + 1010) * 10 / 1e6, 12), model: JUDGES[1].id });
+  });
+
   it('records no score when the judge keeps failing', async () => {
     const call = vi.fn().mockRejectedValue(Object.assign(new Error('bad'), { status: 400 }));
     const verdict = await makeJudge(JUDGES, call, async () => {})(MINI.items[1], 'answer');
@@ -247,14 +256,17 @@ describe('plan and pre-registration', () => {
     expect(plan.policy_versions).toEqual(['rules-v1']);
   });
 
-  it('keeps the pre-registration in step with the shipped code and data', async () => {
-    const plan = await planExperiment(shipped(), GATEWAY_MODELS, DEFAULT_RUNS);
-    const pinned = pinnedValues({
-      benchmarkVersion: 'support-v1', benchmarkHash: benchmarkHash(RAW), promptVersions: plan.prompt_versions,
-      policyVersions: plan.policy_versions, models: GATEWAY_MODELS, runs: DEFAULT_RUNS,
-    });
-    const check = checkPreregistration(readFileSync('experiment/preregistration.md', 'utf8'), pinned);
-    expect(check.problems.filter(p => p !== 'not approved yet')).toEqual([]);
+  it('keeps the pre-registration as the record of its completed run', () => {
+    // After the approved run the document is frozen: it must still list exactly what that run used.
+    const dir = 'experiment/results';
+    const completed = readdirSync(dir).filter(f => f.endsWith('-preregistered.json'))
+      .map(f => (JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')) as { meta: { completed: boolean; pinned: Record<string, string>; approved_by: string } }).meta)
+      .filter(m => m.completed);
+    expect(completed).toHaveLength(1);
+    const [run] = completed;
+    expect(run.pinned['Dataset SHA-256']).toBe(benchmarkHash(RAW));
+    expect(checkPreregistration(readFileSync('experiment/preregistration.md', 'utf8'), run.pinned))
+      .toEqual({ approvedBy: run.approved_by, problems: [] });
   });
 
   it('flags drift, missing values and a missing approval', () => {
