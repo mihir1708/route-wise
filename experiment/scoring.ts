@@ -27,6 +27,11 @@ export function scoreStructured(item: BenchmarkItem, output: unknown): Structure
 }
 
 export const JUDGE_VERSION = 'support-judge-v1';
+/**
+ * The grader, then its fallback, by registry id. The primary in every tier is an OpenAI model, so a Claude
+ * grader is not grading its own family's answers in any config, and Sonnet with thinking off is cheap.
+ */
+export const JUDGE_MODELS: readonly string[] = ['claude-sonnet-5-5', 'gpt-5.6-terra'];
 /** An answer passes its rubric at this score or higher (1 to 5). */
 export const JUDGE_PASS_SCORE = 4;
 export const JUDGE_MAX_OUTPUT_TOKENS = 300;

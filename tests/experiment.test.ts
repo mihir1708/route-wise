@@ -85,6 +85,7 @@ const m = (id: string, provider: ModelConfig['provider'], tier: ModelConfig['tie
 });
 const MODELS = [m('o-low', 'openai', 'low', 1), m('a-low', 'anthropic', 'low', 1), m('o-mid', 'openai', 'mid', 2),
   m('a-mid', 'anthropic', 'mid', 2), m('o-high', 'openai', 'high', 10), m('a-high', 'anthropic', 'high', 10)];
+const JUDGES = MODELS.filter(x => x.tier === 'high');
 const base = { priority: 'normal' as const, reviewed: false, max_cost_usd: 0.25, latency_target_ms: 60000 };
 const MINI: Benchmark = { version: 'mini', items: [
   { ...base, id: 'classify-01', class: 'simple', task_type: 'classify', input: 'I was charged twice for March.', expected: { category: 'billing', urgency: 'medium' } },
@@ -99,7 +100,7 @@ function fakeDeps(overrides: Partial<ExperimentDependencies> = {}): ExperimentDe
     return { content, prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 };
   });
   const judge = vi.fn(async (_: BenchmarkItem, answer: string) => ({ score: answer.includes('low') ? 3 : 5, reason: 'ok', cost_usd: 0.001, model: 'o-high' }));
-  return { models: MODELS, call, judge, spendLimitUsd: 100, concurrency: 2, sleep: async () => {}, random: () => 0.5, ...overrides } as never;
+  return { models: MODELS, call, judge, judgeModels: JUDGES, spendLimitUsd: 100, concurrency: 2, sleep: async () => {}, random: () => 0.5, ...overrides } as never;
 }
 const byConfig = (results: ItemResult[], config: string) => results.filter(r => r.config === config);
 
@@ -144,22 +145,22 @@ describe('harness', () => {
     const error = await runExperiment(MINI, d, { runs: 1 }).catch(e => e);
     expect(error).toBeInstanceOf(SpendLimitReached);
     expect((error as SpendLimitReached).partial.map(r => r.item_id)).toEqual(['classify-01', 'classify-01', 'classify-01']);
-    expect(judgeWorstCase(MINI.items[0], MODELS)).toBe(0);
-    expect(judgeWorstCase(MINI.items[1], MODELS)).toBeGreaterThan(0);
+    expect(judgeWorstCase(MINI.items[0], JUDGES)).toBe(0);
+    expect(judgeWorstCase(MINI.items[1], JUDGES)).toBeGreaterThan(0);
   });
 
   it('judges with a retry on a malformed verdict and counts both calls', async () => {
     const call = vi.fn()
       .mockResolvedValueOnce({ content: 'Looks great!', prompt_tokens: 1000, completion_tokens: 10, total_tokens: 1010 })
       .mockResolvedValueOnce({ content: '{"score": 4, "reason": "Covers it."}', prompt_tokens: 1000, completion_tokens: 10, total_tokens: 1010 });
-    const verdict = await makeJudge(MODELS, call, async () => {})(MINI.items[1], 'answer');
+    const verdict = await makeJudge(JUDGES, call, async () => {})(MINI.items[1], 'answer');
     expect(verdict).toEqual({ score: 4, reason: 'Covers it.', cost_usd: expect.closeTo(2 * 1010 * 10 / 1e6, 12), model: 'o-high' });
     expect(call.mock.calls[0][2]).toMatchObject({ maxOutputTokens: 300 });
   });
 
   it('records no score when the judge keeps failing', async () => {
     const call = vi.fn().mockRejectedValue(Object.assign(new Error('bad'), { status: 400 }));
-    const verdict = await makeJudge(MODELS, call, async () => {})(MINI.items[1], 'answer');
+    const verdict = await makeJudge(JUDGES, call, async () => {})(MINI.items[1], 'answer');
     expect(verdict).toMatchObject({ score: null, reason: 'judge_failed', cost_usd: 0 });
   });
 });

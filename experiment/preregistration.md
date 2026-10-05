@@ -15,7 +15,7 @@ Does rules-v1 routing keep the success rate within 3 points of sending every req
 - Routing policy: `rules-v1`
 - Models: `low: gpt-5.6-luna > claude-haiku-4-5; mid: gpt-5.6-terra > claude-sonnet-5-5; high: gpt-5.6-sol > claude-opus-5-5`
 - Pricing: `gateway-2026-10`
-- Judge: `support-judge-v1 on the high tier, pass at 4/5`
+- Judge: `support-judge-v1 on claude-sonnet-5-5 > gpt-5.6-terra, pass at 4/5`
 - Bar: `routed success at most 3 points below all-premium overall, and at most 1 ticket-run below in each class`
 - Runs: `2`
 
@@ -56,7 +56,7 @@ A failed or refused request counts as a failure and is never dropped.
 
 ## Judge
 
-`support-judge-v1` runs on the high tier (gpt-5.6-sol, with claude-opus-5-5 as its fallback). It receives the task, ticket, rubric and answer as JSON data and replies with a JSON score from 1 to 5. Any invented policy, price, date, step or fact caps the score at 2. A malformed verdict is retried once and then counts as a failure. Judge cost is reported separately and is not added to any config's cost.
+`support-judge-v1` runs on claude-sonnet-5-5 with thinking off, and falls back to gpt-5.6-terra only if Anthropic fails. Every tier's primary is an OpenAI model, so in normal operation the grader never grades its own model family. Each verdict records which model gave it. The judge receives the task, ticket, rubric and answer as JSON data and replies with a JSON score from 1 to 5. Any invented policy, price, date, step or fact caps the score at 2. A malformed verdict is retried once and then counts as a failure. Judge cost is reported separately and is not added to any config's cost.
 
 ## Metrics
 
@@ -74,7 +74,7 @@ A failed or refused request counts as a failure and is never dropped.
 
 - **The sample is small.** With 15 items per class and 2 runs, one ticket failing in one run moves a class by 3.3 points, so a 3-point class bar would allow no loss at all. That is why the class bar is one ticket-run. Even so, 45 tickets cannot show a difference of a few points with statistical confidence; the result is evidence, not proof.
 - **The data is synthetic.** The tickets were drafted with AI help and then reviewed by a person. They are not real customer traffic.
-- **The judge may favor all-premium.** It uses the same models as all-premium and may prefer their answers. That bias works against routed, so it makes a passing result more conservative.
+- **The judge may favor some answers.** A Claude grader could prefer Claude-written answers, which appear only when a tier falls back to its Anthropic model, and the fallback grader is also routed's mid-tier primary. Results record the answering and grading model for every item, so these cases can be checked. The judge was changed from gpt-5.6-sol to claude-sonnet-5-5 before any live run, to cut grading cost by about 90%.
 - **Prices change.** They come from the providers' pricing pages as of the pricing version, so savings are relative to those prices.
 - **Latency depends on conditions.** It includes provider load at run time and the concurrency of 4.
 

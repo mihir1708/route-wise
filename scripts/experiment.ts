@@ -7,7 +7,7 @@ import { createInterface } from 'node:readline/promises';
 import { runtimeModels } from '../lib/model-registry';
 import { callProvider } from '../lib/providers';
 import { benchmarkHash, TASK_CLASSES, validateBenchmark, type Benchmark } from '../experiment/benchmark';
-import { makeJudge, runExperiment, SpendLimitReached, type ItemResult } from '../experiment/harness';
+import { judgeCandidates, makeJudge, runExperiment, SpendLimitReached, type ItemResult } from '../experiment/harness';
 import { planExperiment, type ExperimentPlan } from '../experiment/plan';
 import { checkPreregistration, DEFAULT_RUNS, pinnedValues, renderPinned } from '../experiment/preregistration';
 import { renderMarkdown, summarize } from '../experiment/report';
@@ -109,7 +109,8 @@ async function main() {
   let stopped = false;
   try {
     results = await runExperiment(benchmark, {
-      models, call: callProvider, judge: makeJudge(models, callProvider), spendLimitUsd: spendLimit, concurrency,
+      models, call: callProvider, judge: makeJudge(judgeCandidates(models), callProvider), judgeModels: judgeCandidates(models),
+      spendLimitUsd: spendLimit, concurrency,
       onResult: (r, done, total) => console.log(`[${done}/${total}] run ${r.run} ${r.config} ${r.item_id}: ${r.success ? 'pass' : 'fail'} (${r.tier ?? r.error}, $${r.cost_usd.toFixed(5)}, ${r.latency_ms} ms)`),
     }, { runs });
   } catch (error) {
