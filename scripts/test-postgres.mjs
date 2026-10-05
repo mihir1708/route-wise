@@ -36,6 +36,7 @@ await sql(`DO $$ BEGIN
 END $$;`);
 await sql(readFileSync('tests/sql/v2-integration.sql','utf8'));
 await sql(readFileSync('tests/sql/gateway-integration.sql','utf8'));
+await sql(readFileSync('tests/sql/reliability-integration.sql','utf8'));
 // Concurrent tenants: 30 parallel requests against a 10 RPM limit admit exactly 10.
 await sql(`INSERT INTO tenants(id,name,monthly_budget,rpm_limit,tpm_limit) VALUES ('00000000-0000-4000-8000-0000000000b1','concurrency',5,10,100000);`);
 await Promise.all(Array.from({length:30},()=>sql("SELECT public.take_rate_limit('00000000-0000-4000-8000-0000000000b1',10);")));
@@ -52,4 +53,5 @@ const fresh=new URL(process.env.ROUTEWISE_TEST_DATABASE_URL);fresh.pathname=`/${
 await sql('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'+bootstrap,fresh.toString());
 await sql(readFileSync('tests/sql/v2-integration.sql','utf8'),fresh.toString());
 await sql(readFileSync('tests/sql/gateway-integration.sql','utf8'),fresh.toString());
-console.log('Real PostgreSQL migrations, precision, concurrent increments, fresh bootstrap, access, analytics, job claims, retention, tenant budgets and rate limits passed');
+await sql(readFileSync('tests/sql/reliability-integration.sql','utf8'),fresh.toString());
+console.log('Real PostgreSQL migrations, precision, concurrent increments, fresh bootstrap, access, analytics, job claims, retention, tenant budgets, rate limits, response cache and attempts passed');
