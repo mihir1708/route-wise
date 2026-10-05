@@ -45,6 +45,39 @@ export const PROMPTS: readonly PromptTemplate[] = [
     render: ticket,
   },
   {
+    // v2 defines each label, so "exact match" in the benchmark measures the model, not label ambiguity.
+    task: 'classify', version: 'v2', output: 'json', maxOutputTokens: 60,
+    schema: { type: 'object', additionalProperties: false, required: ['category', 'urgency'], properties: {
+      category: { type: 'string', enum: ['billing', 'technical', 'account', 'shipping', 'other'] },
+      urgency: { type: 'string', enum: ['low', 'medium', 'high'] },
+    } },
+    system: 'You classify customer support tickets for a SaaS product that also ships hardware such as card readers. '
+      + 'Reply with JSON only, no prose: {"category": "billing" | "technical" | "account" | "shipping" | "other", "urgency": "low" | "medium" | "high"}.\n'
+      + 'Categories: billing = charges, invoices for the subscription, refunds, plans, payment methods, payouts; '
+      + 'technical = something in the product, an integration or the API is not working, or how to use a feature; '
+      + 'account = login, two-factor, users, permissions, ownership, access and security of the account; '
+      + 'shipping = delivery of physical hardware; other = feature requests, feedback and anything else.\n'
+      + 'Urgency: high = the customer cannot operate (outage, cannot take payments, locked out, a security or data-loss risk) '
+      + 'or faces a deadline within 24 hours; medium = something is broken or wrong but there is a workaround or limited impact; '
+      + 'low = questions, how-to and requests with no current impact.',
+    render: ticket,
+  },
+  {
+    task: 'extract', version: 'v2', output: 'json', maxOutputTokens: 200,
+    schema: { type: 'object', additionalProperties: false, required: ['order_id', 'product', 'customer_email', 'requested_action'], properties: {
+      order_id: { type: ['string', 'null'] }, product: { type: ['string', 'null'] }, customer_email: { type: ['string', 'null'] },
+      requested_action: { type: ['string', 'null'], enum: ['refund', 'cancel', 'change_plan', 'update_details', 'replacement', 'technical_fix', 'question', 'other', null] },
+    } },
+    system: 'You extract fields from customer support tickets. Reply with JSON only, no prose: '
+      + '{"order_id": string | null, "product": string | null, "customer_email": string | null, "requested_action": '
+      + '"refund" | "cancel" | "change_plan" | "update_details" | "replacement" | "technical_fix" | "question" | "other" | null}.\n'
+      + 'order_id: an order, invoice or reference number exactly as written. product: the product, plan or add-on the ticket is about, as named. '
+      + 'customer_email: the email address the customer gives for themselves. requested_action: what the customer wants done '
+      + '(technical_fix = make something work again; question = they only want information). '
+      + 'Use null when the ticket does not state a value. Never guess.',
+    render: ticket,
+  },
+  {
     task: 'summarize', version: 'v1', output: 'text', maxOutputTokens: 400,
     system: 'You summarize customer support ticket threads for the next agent. Write at most five bullets: '
       + 'the issue, what has been tried, the current status, and the next action. Use only facts in the thread.',
