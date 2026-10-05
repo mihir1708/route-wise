@@ -1,0 +1,1196 @@
+{
+  "meta": {
+    "mode": "smoke",
+    "completed": true,
+    "started_at": "2026-10-05T06:36:37.256Z",
+    "finished_at": "2026-10-05T06:37:34.064Z",
+    "commit": "e30658f717c8f012359ac3d30cf01322df66e8ba",
+    "dirty": false,
+    "benchmark_version": "support-v1",
+    "benchmark_sha256": "fa31f71b8326d57caf233635e317c35fe30a8687648b265982f792f1e5ed1870",
+    "items": 3,
+    "runs": 2,
+    "concurrency": 4,
+    "spend_limit_usd": 2,
+    "pinned": {
+      "Dataset": "support-v1",
+      "Dataset SHA-256": "fa31f71b8326d57caf233635e317c35fe30a8687648b265982f792f1e5ed1870",
+      "Configs": "all-premium=high; routed=low+mid+high; all-small=low",
+      "Prompts": "classify@v2, draft_reply@v1, extract@v2, summarize@v1, troubleshoot@v1",
+      "Routing policy": "rules-v1",
+      "Models": "low: gpt-5.6-luna > claude-haiku-4-5; mid: gpt-5.6-terra > claude-sonnet-5-5; high: gpt-5.6-sol > claude-opus-5-5",
+      "Pricing": "gateway-2026-10",
+      "Judge": "support-judge-v1 on claude-sonnet-5-5 > gpt-5.6-terra, pass at 4/5",
+      "Bar": "routed success at most 3 points below all-premium overall, and at most 1 ticket-run below in each class",
+      "Runs": "2"
+    },
+    "approved_by": "Mihir Mukhi, 2026-10-05"
+  },
+  "plan": {
+    "configs": [
+      {
+        "config": "all-premium",
+        "tiers": {
+          "low": 0,
+          "mid": 0,
+          "high": 3
+        },
+        "refused": [],
+        "upper_bound_usd": 0.22723,
+        "typical_usd": 0.08191,
+        "judge_upper_bound_usd": 0.073912,
+        "judge_typical_usd": 0.004156
+      },
+      {
+        "config": "routed",
+        "tiers": {
+          "low": 1,
+          "mid": 2,
+          "high": 0
+        },
+        "refused": [],
+        "upper_bound_usd": 0.055496000000000004,
+        "typical_usd": 0.016034800000000002,
+        "judge_upper_bound_usd": 0.073912,
+        "judge_typical_usd": 0.004156
+      },
+      {
+        "config": "all-small",
+        "tiers": {
+          "low": 3,
+          "mid": 0,
+          "high": 0
+        },
+        "refused": [],
+        "upper_bound_usd": 0.007986,
+        "typical_usd": 0.0008752,
+        "judge_upper_bound_usd": 0.073912,
+        "judge_typical_usd": 0.004156
+      }
+    ],
+    "runs": 2,
+    "prompt_versions": [
+      "classify@v2",
+      "summarize@v1",
+      "troubleshoot@v1"
+    ],
+    "policy_versions": [
+      "rules-v1"
+    ],
+    "upper_bound_usd": 1.024896,
+    "typical_usd": 0.22257600000000002
+  },
+  "summary": {
+    "configs": [
+      {
+        "config": "all-premium",
+        "runs": [
+          {
+            "items": 3,
+            "successes": 3,
+            "success_rate": 1,
+            "by_class": {
+              "simple": 1,
+              "standard": 1,
+              "complex": 1
+            },
+            "total_cost_usd": 0.04845000000000001,
+            "cost_per_success_usd": 0.01615
+          },
+          {
+            "items": 3,
+            "successes": 3,
+            "success_rate": 1,
+            "by_class": {
+              "simple": 1,
+              "standard": 1,
+              "complex": 1
+            },
+            "total_cost_usd": 0.044969999999999996,
+            "cost_per_success_usd": 0.014989999999999998
+          }
+        ],
+        "success_rate": 1,
+        "by_class": {
+          "simple": 1,
+          "standard": 1,
+          "complex": 1
+        },
+        "total_cost_usd": 0.04671,
+        "cost_per_success_usd": 0.01557,
+        "latency_p50_ms": 2835,
+        "latency_p95_ms": 33760,
+        "tier_share": {
+          "high": 0.9999999999999999
+        },
+        "fallback_rate": 0,
+        "escalation_rate": 0,
+        "over_cost": 0,
+        "over_latency": 0
+      },
+      {
+        "config": "routed",
+        "runs": [
+          {
+            "items": 3,
+            "successes": 3,
+            "success_rate": 1,
+            "by_class": {
+              "simple": 1,
+              "standard": 1,
+              "complex": 1
+            },
+            "total_cost_usd": 0.019615200000000003,
+            "cost_per_success_usd": 0.006538400000000001
+          },
+          {
+            "items": 3,
+            "successes": 2,
+            "success_rate": 0.6666666666666666,
+            "by_class": {
+              "simple": 1,
+              "standard": 1,
+              "complex": 0
+            },
+            "total_cost_usd": 0.0214992,
+            "cost_per_success_usd": 0.0107496
+          }
+        ],
+        "success_rate": 0.8333333333333333,
+        "by_class": {
+          "simple": 1,
+          "standard": 1,
+          "complex": 0.5
+        },
+        "total_cost_usd": 0.0205572,
+        "cost_per_success_usd": 0.008644,
+        "latency_p50_ms": 2730,
+        "latency_p95_ms": 21045,
+        "tier_share": {
+          "low": 0.3333333333333333,
+          "mid": 0.6666666666666666
+        },
+        "fallback_rate": 0,
+        "escalation_rate": 0,
+        "over_cost": 0,
+        "over_latency": 0
+      },
+      {
+        "config": "all-small",
+        "runs": [
+          {
+            "items": 3,
+            "successes": 3,
+            "success_rate": 1,
+            "by_class": {
+              "simple": 1,
+              "standard": 1,
+              "complex": 1
+            },
+            "total_cost_usd": 0.0014052000000000001,
+            "cost_per_success_usd": 0.00046840000000000006
+          },
+          {
+            "items": 3,
+            "successes": 2,
+            "success_rate": 0.6666666666666666,
+            "by_class": {
+              "simple": 1,
+              "standard": 1,
+              "complex": 0
+            },
+            "total_cost_usd": 0.001488,
+            "cost_per_success_usd": 0.000744
+          }
+        ],
+        "success_rate": 0.8333333333333333,
+        "by_class": {
+          "simple": 1,
+          "standard": 1,
+          "complex": 0.5
+        },
+        "total_cost_usd": 0.0014466000000000001,
+        "cost_per_success_usd": 0.0006062,
+        "latency_p50_ms": 2639,
+        "latency_p95_ms": 10615,
+        "tier_share": {
+          "low": 0.9999999999999999
+        },
+        "fallback_rate": 0,
+        "escalation_rate": 0,
+        "over_cost": 0,
+        "over_latency": 0
+      }
+    ],
+    "bar": {
+      "passed": false,
+      "gaps": {
+        "overall": -0.16666666666666674,
+        "simple": 0,
+        "standard": 0,
+        "complex": -0.5
+      },
+      "allowed": {
+        "overall": 0.03,
+        "simple": 0.5,
+        "standard": 0.5,
+        "complex": 0.5
+      }
+    },
+    "preregistered": false,
+    "routed_savings": null,
+    "unstable": [
+      {
+        "config": "routed",
+        "item_id": "troubleshoot-01",
+        "outcomes": [
+          true,
+          false
+        ]
+      },
+      {
+        "config": "all-small",
+        "item_id": "troubleshoot-01",
+        "outcomes": [
+          true,
+          false
+        ]
+      }
+    ],
+    "judge": {
+      "calls": 12,
+      "failures": 0,
+      "cost_usd": 0.057762
+    }
+  },
+  "results": [
+    {
+      "run": 1,
+      "config": "all-premium",
+      "item_id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "high",
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "route_reasons": [
+        "task classify starts at low",
+        "tier low unavailable for tenant or registry; using high"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-sol",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 2833
+        }
+      ],
+      "cost_usd": 0.00178,
+      "latency_ms": 2835,
+      "stage_timings": {
+        "validate": 1,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 1,
+        "provider": 2833,
+        "usage_capture": 0,
+        "output_validation": 0,
+        "accounting": 0
+      },
+      "answer": "{\"category\":\"billing\",\"urgency\":\"medium\"}",
+      "check": {
+        "method": "exact",
+        "passed": true,
+        "fields": {
+          "category": true,
+          "urgency": true
+        }
+      },
+      "judge_cost_usd": 0,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "routed",
+      "item_id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task classify starts at low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 2727
+        }
+      ],
+      "cost_usd": 0.0000712,
+      "latency_ms": 2730,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 2,
+        "provider": 2727,
+        "usage_capture": 0,
+        "output_validation": 1,
+        "accounting": 0
+      },
+      "answer": "{\"category\":\"billing\",\"urgency\":\"medium\"}",
+      "check": {
+        "method": "exact",
+        "passed": true,
+        "fields": {
+          "category": true,
+          "urgency": true
+        }
+      },
+      "judge_cost_usd": 0,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "all-small",
+      "item_id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task classify starts at low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 2742
+        }
+      ],
+      "cost_usd": 0.0000712,
+      "latency_ms": 2744,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 2,
+        "provider": 2742,
+        "usage_capture": 0,
+        "output_validation": 0,
+        "accounting": 0
+      },
+      "answer": "{\"category\":\"billing\",\"urgency\":\"medium\"}",
+      "check": {
+        "method": "exact",
+        "passed": true,
+        "fields": {
+          "category": true,
+          "urgency": true
+        }
+      },
+      "judge_cost_usd": 0,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "all-premium",
+      "item_id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "high",
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "route_reasons": [
+        "task summarize starts at mid",
+        "tier mid unavailable for tenant or registry; using high"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-sol",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 3837
+        }
+      ],
+      "cost_usd": 0.004465,
+      "latency_ms": 3839,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 2,
+        "provider": 3837,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "- **Issue:** $3,240 payout scheduled and sent on September 30 has not reached the customer’s bank account.\n- **Tried:** Customer waited through October 3; their bank confirmed no incoming transfer from Ledgerly.\n- **Current status:** Agent Lena asked the payments team to trace the transfer; no update has been provided as of October 4.\n- **Urgency:** Customer needs the funds for payroll on October 7.\n- **Next action:** Follow up with the payments team and update the customer on the trace.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The summary covers every criterion: the $3,240 payout sent Sept 30 that the bank doesn't see, the pending payments-team trace with no result yet, the Oct 7 payroll deadline, and the follow-up action, in five bullets with nothing invented.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.002692,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "routed",
+      "item_id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "mid",
+      "model": "gpt-5.6-terra",
+      "provider": "openai",
+      "route_reasons": [
+        "task summarize starts at mid"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-terra",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 4181
+        }
+      ],
+      "cost_usd": 0.002086,
+      "latency_ms": 4181,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 4181,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "- Customer reports a $3,240 payout scheduled for September 30 has not arrived in their bank account.\n- Lena confirmed the payout was sent September 30 and initially advised allowing up to 2 business days, then checking again October 3.\n- On October 3, customer confirmed the funds were still missing; their bank reported no incoming transfer from Ledgerly.\n- Lena escalated to the payments team to trace the transfer with the bank; no trace result has been provided yet.\n- Customer requested an update October 4, noting the funds are needed for payroll on October 7. Next action: obtain and relay the payments team’s transfer-trace update.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The summary is accurate and uses five bullets, covering the missing $3,240 payout, the bank seeing no incoming transfer, the payments team trace with no result yet, the October 7 payroll deadline and the next action, with nothing invented.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.0026839999999999998,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "all-small",
+      "item_id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task summarize starts at mid",
+        "tier mid unavailable for tenant or registry; using low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 2638
+        }
+      ],
+      "cost_usd": 0.00018820000000000002,
+      "latency_ms": 2639,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 2638,
+        "usage_capture": 1,
+        "accounting": 0
+      },
+      "answer": "- **Issue:** The customer has not received the $3,240 payout scheduled for September 30; their bank reports no incoming transfer from Ledgerly.\n- **Tried:** Agent Lena confirmed the payout was marked sent, advised allowing up to two business days, and escalated a transfer trace to the payments team.\n- **Current status:** The payments team’s trace result is pending. The customer needs the funds for payroll on October 7.\n- **Next action:** Follow up with the payments team for the trace update and inform the customer as soon as there is a finding.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The four-bullet summary covers every criterion (the $3,240 payout sent September 30 with the bank seeing no transfer, the pending payments team trace, the next follow-up action, and the October 7 payroll deadline) and adds nothing not in the thread.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.002686,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "all-premium",
+      "item_id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "high",
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "route_reasons": [
+        "task troubleshoot starts at high",
+        "short ticket with no hard signals: down to mid",
+        "tier mid unavailable for tenant or registry; using high"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-sol",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 28737
+        }
+      ],
+      "cost_usd": 0.042205000000000006,
+      "latency_ms": 28737,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 28737,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "## Most likely diagnosis\n\nThe ~50% failure rate strongly suggests the two worker instances are not using the same effective signing secret. One likely has the rotated secret, while the other still has the old value or stale configuration.\n\n### 1. One worker still uses the old secret — highest likelihood\n\n**Evidence**\n\n- There are exactly two workers behind a load balancer.\n- About half the requests fail, matching roughly even load distribution.\n- Failures started immediately after secret rotation.\n- Verification worked before the change.\n\n**Confirm**\n\n1. Correlate each webhook result with the worker instance ID or hostname.\n2. Compare pass/fail rates per instance.\n3. On each instance, inspect a **non-secret fingerprint** of the effective runtime value, such as:\n   ```text\n   SHA-256(secret) first 8–12 hex characters\n   ```\n   Do not log or expose the secret itself.\n4. Confirm the running process—not merely the deployment configuration—has the expected secret and deployment revision.\n\n**Fix**\n\n- Perform a full restart or replacement of both workers.\n- Verify both instances reference the same secret version and fingerprint.\n- Ensure the deployment blocks traffic until the application has loaded the new configuration.\n- After restart, send a provider test webhook and confirm success on each instance independently.\n\n**Risk:** Never print the signing secret in logs, shell history, tickets, or monitoring labels. If it has been exposed while troubleshooting, rotate it again.\n\n---\n\n### 2. The redeployment was partial or one instance failed to roll over\n\n**Evidence**\n\n- Updating environment variables generally affects only newly started processes.\n- A rolling deployment can leave an old process alive if health checks pass or rollout completion is misreported.\n- This produces the same near-50/50 pattern.\n\n**Confirm**\n\n- Compare process start times, deployment IDs, image digests, pod revisions, or service task versions.\n- Check rollout events for failed replacement, rollback, or an old replica that never terminated.\n- Verify the load balancer’s registered targets match the intended deployment.\n\n**Fix**\n\n- Drain and terminate the stale instance.\n- Redeploy with an immutable configuration/version reference.\n- Add a startup log containing only the secret version or safe fingerprint.\n- Add a readiness check that confirms required configuration was loaded, without revealing it.\n\n**Risk:** Drain the worker before terminating it if webhook processing is not safely retryable; abrupt termination could duplicate or lose in-flight work.\n\n---\n\n### 3. The two workers resolve the environment variable differently\n\nExamples include a typo on one host, duplicate variable definitions, one worker reading a secret manager while another reads a local environment file, or a newline/whitespace difference.\n\n**Evidence**\n\n- Both instances may appear “redeployed” but still receive values from different configuration sources.\n- A trailing newline or copied prefix can make HMAC verification fail completely.\n\n**Confirm**\n\nOn each worker, compare:\n\n- Configuration source and secret version.\n- Secret byte length.\n- Safe hash fingerprint.\n- Variable name and precedence.\n- Whether quotes, newline characters, or whitespace are included.\n\nAlso verify that the application reads the expected variable and does not fall back to a default or old variable name.\n\n**Fix**\n\n- Use a single managed secret reference for all workers.\n- Remove duplicate or fallback definitions.\n- Preserve the provider-issued secret exactly; do not trim unless the provider explicitly says to.\n- Restart all processes after correction.\n\n---\n\n### 4. Webhooks are temporarily being signed with both old and new secrets\n\n**Evidence**\n\n- Some providers rotate gradually, support multiple webhook endpoints, or sign queued/retried deliveries using the secret associated with the original delivery.\n- Retries created before rotation might continue to use the old secret.\n- This is less likely than an instance mismatch if failures correlate with workers rather than event age.\n\n**Confirm**\n\n- Check the provider’s rotation documentation and dashboard.\n- Determine whether failures correlate with:\n  - Original event or delivery creation time.\n  - A specific webhook endpoint ID.\n  - Signature key/version identifier.\n  - Retry status.\n- Temporarily test failed signatures offline against both old and new secrets, using securely handled payloads.\n\n**Fix**\n\n- If supported by the provider, use an overlap window where verification accepts both the current and immediately previous secret.\n- Attempt verification with the new secret first, then the old secret.\n- Remove the old secret after the provider’s documented retry/rotation window expires.\n\n**Risk:** Dual-secret acceptance should be time-limited. Keeping old secrets indefinitely increases exposure. Do not weaken verification or accept unsigned requests.\n\n---\n\n### 5. One worker verifies a modified payload instead of the raw request body\n\n**Evidence**\n\n- Signature verification usually requires the exact raw bytes received.\n- Differences in middleware, deployment version, body parsing, character encoding, or JSON reserialization can invalidate signatures.\n- This would fit if the workers are running different application versions, though the timing makes secret inconsistency more likely.\n\n**Confirm**\n\n- Correlate failures by worker and application build.\n- Verify both workers calculate the HMAC over the exact raw body bytes and use the same signature header and timestamp handling.\n- Compare safe diagnostics such as payload byte length and body hash—not sensitive body contents.\n\n**Fix**\n\n- Capture the raw body before JSON parsing or mutation.\n- Run identical application builds and middleware configuration on both workers.\n- Follow the provider’s exact signed-message format, including timestamp concatenation and encoding.\n\n**Risk:** Webhook payloads may contain personal or confidential data. Avoid logging raw request bodies unless explicitly approved and securely redacted.\n\n---\n\n## Recommended immediate sequence\n\n1. Add or query worker-instance correlation for successful and failed checks.\n2. Compare the two workers’ deployment revision, process start time, secret version, secret length, and safe fingerprint.\n3. If they differ, drain and replace the stale worker, then restart both.\n4. Send test deliveries directly to each worker if possible, bypassing the load balancer only in a controlled internal test.\n5. If failures do not correlate with a worker, check whether failed deliveries validate with the previous secret and correlate with old/retried events.\n6. Only then investigate raw-body handling and signature parsing.\n\nDo **not** disable signature checking as a workaround. If uninterrupted processing is essential, retain failed deliveries for secure replay after the configuration is corrected, while preserving idempotency to prevent duplicate processing.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The answer meets all five criteria: it names one instance holding the old secret as the top cause (fitting the ~50% rate), gives per-instance confirmation steps, covers old-secret-signed events with a time-limited dual-secret overlap, prescribes ensuring both instances have the new secret and restarting, and explicitly warns against disabling verification, with no invented facts (extra scenarios are framed as hypotheses to check); the length is excessive but not inaccurate.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.007598,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "routed",
+      "item_id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "mid",
+      "model": "gpt-5.6-terra",
+      "provider": "openai",
+      "route_reasons": [
+        "task troubleshoot starts at high",
+        "short ticket with no hard signals: down to mid"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-terra",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 18702
+        }
+      ],
+      "cost_usd": 0.017458,
+      "latency_ms": 18703,
+      "stage_timings": {
+        "validate": 1,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 18702,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "## Most likely cause: one worker is still using the old signing secret\n\n**Why this is most likely**\n- Failures began immediately after the secret rotation.\n- Failure rate is “about half.”\n- There are exactly **two worker instances** behind a load balancer.\n- This strongly suggests requests routed to one instance validate successfully while requests routed to the other fail.\n\n**Common reasons**\n- Only one instance was redeployed/restarted.\n- The second instance did not receive the updated environment variable.\n- A failed/partial rollout left an old task/pod/VM in service.\n- The application reads the secret only at startup, so updating environment configuration without a full process restart had no effect.\n\n**How to confirm**\n1. Add or inspect a non-sensitive instance identifier in signature-validation logs, for example:\n   - hostname / pod name / task ID / deployment revision\n   - secret configuration version or fingerprint, **not the secret itself**\n2. Correlate successful and failed signature checks by instance.\n3. Inspect the runtime environment/configuration of both workers and compare:\n   - deployment/image revision\n   - process start time\n   - secret source/version reference\n   - configuration fingerprint, e.g. a short hash of the configured secret\n4. Check load-balancer backend/target health and deployment history for an old target still registered.\n\n**Fix**\n- Update the secret in the authoritative secret/config store.\n- Perform a rolling restart/redeployment of **all** workers.\n- Verify the load balancer has only the intended deployment revision registered.\n- Confirm both workers report the same non-reversible secret fingerprint/version.\n- Send test webhooks and confirm success on each instance before closing the incident.\n\n---\n\n## Second likely cause: the new secret was updated in one environment/config scope but not the one used by workers\n\n**Why it fits**\n- Teams often update a local, web-service, staging, or deployment-time variable while the asynchronous worker service uses a different environment, secret store, namespace, task definition, or release configuration.\n- It can also appear as a 50% failure rate if the two workers were created from different revisions/config sources.\n\n**How to confirm**\n- Identify the exact service/process that performs webhook verification.\n- Check its effective runtime configuration rather than only the deployment UI or CI/CD variables.\n- Compare each worker’s secret reference/version and deployment manifest/task definition.\n- Review the rollout/audit history around the rotation time.\n\n**Fix**\n- Correct the secret reference in the worker’s actual runtime configuration.\n- Redeploy all replicas from one known-good revision.\n- Add deployment validation that asserts every running replica uses the expected secret version.\n\n---\n\n## Third likely cause: provider rotation requires accepting both old and new secrets during a transition period\n\n**Why it may fit**\n- Some webhook providers continue sending events signed with the prior secret for a short overlap period, or retries may carry signatures generated before rotation.\n- If only some incoming requests are signed with the old secret, the result can look intermittent.\n\n**Evidence to collect**\n- Inspect webhook headers and provider documentation for signature key IDs, timestamps, or rotation behavior.\n- Compare failed vs. successful event timestamps and delivery/retry IDs.\n- Determine whether failures are clustered around retries of events created before the rotation.\n- Check whether the provider exposes a “current” and “previous” signing secret/key during rotation.\n\n**Fix**\n- During the documented overlap window, verify against both the old and new secret, accepting a request if either validates.\n- Prefer key/version IDs from the provider when available, rather than trying all secrets indefinitely.\n- Remove the old secret immediately after the provider’s documented transition window.\n\n**Risk**\n- Do **not** keep the old secret accepted permanently. This extends the exposure window if it has been compromised.\n- Do not broadly weaken timestamp/replay protections to accommodate retries.\n\n---\n\n## Fourth likely cause: a partial deployment introduced a code/config mismatch\n\n**Why it may fit**\n- One worker may have a version of verification code that reads a different variable name, secret format, encoding, or configuration path.\n- A partial rollout can produce approximately half failures even if both hosts appear “deployed.”\n\n**Examples**\n- One revision expects `WEBHOOK_SECRET`, another expects `WEBHOOK_SIGNING_SECRET`.\n- One revision trims or decodes the secret differently.\n- One revision uses a new signing algorithm/header format.\n\n**How to confirm**\n- Compare application version/build SHA and startup logs across workers.\n- Compare the exact configuration key names and secret-source mappings for both revisions.\n- Reproduce validation using a captured request and each worker’s intended release configuration.\n\n**Fix**\n- Standardize all replicas on one tested application revision.\n- Add a startup health/readiness check that fails when the signing-secret configuration is absent or malformed.\n- Emit the config key name and a safe fingerprint/version at startup.\n\n---\n\n## Less likely cause: webhook body is modified before signature verification\n\n**Why it is less likely**\n- This normally affects all instances, not approximately half, unless only one worker has different middleware/proxy behavior.\n- It remains worth checking if both workers have identical secrets and versions.\n\n**Things to check**\n- Signature verification must use the **exact raw request bytes** received from the provider.\n- Ensure JSON parsing, decompression, character-set conversion, normalization, or request-body reserialization does not occur before validation.\n- Compare middleware and proxy settings between the two instances.\n\n**Fix**\n- Preserve and validate the raw body first; parse JSON only after successful verification.\n- Ensure both workers use identical middleware and ingress/proxy configuration.\n\n---\n\n## Recommended incident sequence\n\n1. **Immediately identify validation outcome by worker instance.**  \n   This should quickly confirm or rule out the leading hypothesis.\n\n2. **Check effective secret version/fingerprint and deployment revision on both workers.**  \n   Do not print raw secrets in logs, shell history, tickets, or monitoring systems.\n\n3. **If they differ, drain/redeploy the stale worker** and verify all load-balanced targets are on the same revision/configuration.\n\n4. **Check provider rotation overlap behavior.**  \n   If applicable, temporarily support both secrets with a firm removal deadline.\n\n5. **Review rejected-event handling.**  \n   Confirm the provider will retry failed deliveries, or arrange safe replay/reprocessing for events rejected during the incident. Avoid processing unsigned/unverified events merely to catch up.\n\n6. **Add prevention controls**\n   - Deployment checks for uniform secret version across replicas.\n   - Instance/revision labels in signature-validation metrics.\n   - Alert on signature-failure rate by worker.\n   - A documented, tested secret-rotation runbook including overlap handling and full fleet restart.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 4,
+        "reason": "The answer covers all five criteria: it names the stale-instance cause, gives confirmation methods, covers old-secret overlap verification, gives the fix of redeploying all workers, and warns against loosening protections. However, it never explicitly says not to disable signature verification (only 'avoid processing unverified events'), and it is overly long with speculative extra causes that dilute the main answer.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.007388,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 1,
+      "config": "all-small",
+      "item_id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task troubleshoot starts at high",
+        "short ticket with no hard signals: down to mid",
+        "tier mid unavailable for tenant or registry; using low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 9904
+        }
+      ],
+      "cost_usd": 0.0011458,
+      "latency_ms": 9905,
+      "stage_timings": {
+        "validate": 1,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 9904,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "## Likely causes, in order\n\n### 1. One worker is still using the old secret\n**Why this is most likely:** About half of requests fail, and there are exactly two worker instances. A load balancer may be sending traffic to one correctly updated worker and one stale worker.\n\n**Confirm**\n- Check each worker’s deployed version/configuration independently.\n- Compare a non-sensitive identifier or hash of the loaded secret—not the secret itself—for both instances.\n- Review startup logs to verify when each worker loaded the secret.\n- Temporarily route traffic to each worker separately, if possible, and compare signature failure rates.\n\n**Fix**\n- Restart or redeploy both workers explicitly.\n- Confirm the environment variable is present in the runtime process, not merely updated in the deployment configuration.\n- Ensure the load balancer has removed old instances and that no stale tasks/pods/VMs remain.\n- Add a deployment check that validates the expected secret version/hash on every instance.\n\n**Risk:** Do not log or expose the raw signing secret. Also verify that retries are not being processed twice during the restart.\n\n---\n\n### 2. The sender is signing with a different secret during a rotation transition\n**Why it is plausible:** Some webhook providers support overlapping secrets or rotate asynchronously. Requests may arrive signed with either the old or new secret for a period.\n\n**Confirm**\n- Check the provider’s rotation documentation and dashboard for an overlap/grace period.\n- Inspect failed requests’ signature metadata and timestamps, without logging sensitive payloads or secrets.\n- Ask the provider whether they are sending old and new signatures concurrently.\n- Test a known payload against both configured secrets in a safe diagnostic tool.\n\n**Fix**\n- If supported and approved, temporarily accept both the old and new secret during the documented transition window.\n- Verify the signature using the new secret first, then the old secret.\n- Remove the old secret promptly once the provider confirms the transition is complete.\n\n**Risk:** Accepting both secrets increases the window in which a compromised old secret remains valid. Time-box this change and monitor it closely.\n\n---\n\n### 3. The secret was updated in the wrong environment or configuration source\n**Why it is plausible:** Environment variables may be overridden by a secret manager, container-level setting, process manager, or deployment-specific configuration.\n\n**Confirm**\n- Trace the effective configuration source used by the running process.\n- Compare the deployment manifest, secret-manager version, container environment, and application startup configuration.\n- Verify that the redeployed workers actually received the new configuration.\n- Check whether workers cache the secret at startup.\n\n**Fix**\n- Update the authoritative secret source.\n- Redeploy/restart all workers.\n- Remove conflicting legacy configuration and document the source of truth.\n\n---\n\n### 4. Signature verification is affected by request-body handling\n**Why it is less likely:** The issue began at rotation time, but a deployment could also have changed middleware or request parsing. Signature checks generally require the exact raw request bytes.\n\n**Confirm**\n- Compare successful and failed requests for HTTP content encoding, body transformations, middleware behavior, and content type.\n- Verify that the application computes the HMAC over the untouched raw body, before JSON parsing or reserialization.\n- Reproduce using a captured test webhook and the provider’s documented signing algorithm.\n\n**Fix**\n- Capture the raw request body before parsing.\n- Ensure proxies, middleware, and frameworks do not modify whitespace, encoding, compression, or line endings before verification.\n- Confirm the expected algorithm, signature header format, timestamp handling, and tolerance window.\n\n---\n\n### 5. Load-balancer routing or duplicate application versions\n**Why it is plausible:** A blue/green deployment, autoscaling group, or stale task may still be registered behind the load balancer.\n\n**Confirm**\n- Inspect the target pool/target group and instance/task versions.\n- Check health-check responses for an application version and secret configuration hash.\n- Correlate signature failures with backend instance ID and request timestamp.\n\n**Fix**\n- Drain and deregister stale targets.\n- Complete the rollout or roll back consistently.\n- Add instance/version identifiers to internal logs and health endpoints; never expose secrets.\n\n## Recommended immediate sequence\n\n1. Correlate failures with the backend worker handling each request.\n2. Compare the loaded secret’s hash/version across both workers.\n3. Restart or redeploy both workers and verify the active target pool.\n4. Check the provider’s rotation behavior and whether dual-secret validation is expected.\n5. If failures persist, validate raw-body handling and signature algorithm/header parsing.\n6. Monitor success rates and alert on any worker using an unexpected configuration version.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 4,
+        "reason": "The answer covers the stale-instance cause with confirmation and fix, plus the overlap/dual-secret verification, but it never warns against disabling signature verification, and it adds somewhat speculative extra causes without saying so.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.005374,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "all-premium",
+      "item_id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "high",
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "route_reasons": [
+        "task classify starts at low",
+        "tier low unavailable for tenant or registry; using high"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-sol",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 1801
+        }
+      ],
+      "cost_usd": 0.00178,
+      "latency_ms": 1802,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 1802,
+        "usage_capture": 0,
+        "output_validation": 0,
+        "accounting": 0
+      },
+      "answer": "{\"category\":\"billing\",\"urgency\":\"medium\"}",
+      "check": {
+        "method": "exact",
+        "passed": true,
+        "fields": {
+          "category": true,
+          "urgency": true
+        }
+      },
+      "judge_cost_usd": 0,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "routed",
+      "item_id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task classify starts at low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 729
+        }
+      ],
+      "cost_usd": 0.0000712,
+      "latency_ms": 729,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 729,
+        "usage_capture": 0,
+        "output_validation": 0,
+        "accounting": 0
+      },
+      "answer": "{\"category\":\"billing\",\"urgency\":\"medium\"}",
+      "check": {
+        "method": "exact",
+        "passed": true,
+        "fields": {
+          "category": true,
+          "urgency": true
+        }
+      },
+      "judge_cost_usd": 0,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "all-small",
+      "item_id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task classify starts at low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 908
+        }
+      ],
+      "cost_usd": 0.0000712,
+      "latency_ms": 908,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 908,
+        "usage_capture": 0,
+        "output_validation": 0,
+        "accounting": 0
+      },
+      "answer": "{\"category\":\"billing\",\"urgency\":\"medium\"}",
+      "check": {
+        "method": "exact",
+        "passed": true,
+        "fields": {
+          "category": true,
+          "urgency": true
+        }
+      },
+      "judge_cost_usd": 0,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "all-premium",
+      "item_id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "high",
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "route_reasons": [
+        "task summarize starts at mid",
+        "tier mid unavailable for tenant or registry; using high"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-sol",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 2182
+        }
+      ],
+      "cost_usd": 0.004225,
+      "latency_ms": 2182,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 2182,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "- **Issue:** $3,240 payout scheduled and sent on September 30 has not reached the customer’s bank account.\n- **Tried:** Customer waited through October 3 and contacted their bank, which found no incoming transfer from Ledgerly.\n- **Current status:** Payments team was asked on October 3 to trace the transfer; no update is recorded.\n- **Next action:** Follow up urgently with the payments team and update the customer, who needs the funds for payroll on October 7.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The four-bullet summary covers every criterion (the $3,240 payout sent Sept 30, the bank seeing no transfer, the payments team trace with no result yet, and the follow-up action with the Oct 7 payroll deadline) and adds nothing that isn't in the thread.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.002722,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "routed",
+      "item_id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "mid",
+      "model": "gpt-5.6-terra",
+      "provider": "openai",
+      "route_reasons": [
+        "task summarize starts at mid"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-terra",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 1944
+        }
+      ],
+      "cost_usd": 0.0018579999999999998,
+      "latency_ms": 1944,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 1944,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "- Customer reports a $3,240 payout scheduled for Sept 30 has not arrived in their bank account.\n- Lena confirmed the payout was sent on Sept 30 and initially advised allowing up to 2 business days.\n- As of Oct 3, the customer still had not received it; their bank reported no incoming transfer from Ledgerly.\n- Lena escalated to the payments team to trace the transfer with the bank.\n- Current status: awaiting payments-team update; customer needs funds for payroll on Oct 7. Next action: obtain and provide the trace/update urgently.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The summary covers every criterion: the $3,240 Sept 30 payout missing with no incoming transfer seen by the bank, the payments team trace with no result yet, the next action to follow up and update the customer, and the Oct 7 payroll deadline, all in five bullets with nothing invented.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.002818,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "all-small",
+      "item_id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task summarize starts at mid",
+        "tier mid unavailable for tenant or registry; using low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 1814
+        }
+      ],
+      "cost_usd": 0.0001918,
+      "latency_ms": 1814,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 1814,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "- **Issue:** Customer has not received the $3,240 payout scheduled for September 30; their bank reports no incoming transfer from Ledgerly.\n- **Tried:** Agent confirmed the payout was sent September 30 and advised allowing up to two business days. On October 3, the payments team was asked to trace the transfer with the bank.\n- **Current status:** No trace result or update has been provided yet. Customer needs the funds for payroll on October 7.\n- **Next action:** Follow up with the payments team/bank on the transfer trace and update the customer promptly.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 5,
+        "reason": "The summary covers all four criteria (the $3,240 payout sent Sept 30 with the bank seeing no incoming transfer, the payments team trace with no result yet, the next action to follow up and update the customer, and the Oct 7 payroll need) in four bullets with nothing invented.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.0027860000000000003,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "all-premium",
+      "item_id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "high",
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "route_reasons": [
+        "task troubleshoot starts at high",
+        "short ticket with no hard signals: down to mid",
+        "tier mid unavailable for tenant or registry; using high"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-sol",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 33759
+        }
+      ],
+      "cost_usd": 0.038965,
+      "latency_ms": 33760,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 1,
+        "provider": 33759,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "## Most likely causes, in order\n\n### 1. One worker is still using the old secret\n**Evidence**\n- The failure rate is approximately 50%.\n- There are exactly two workers behind a load balancer.\n- Failures began immediately after the secret rotation.\n- This strongly suggests one worker has the new secret while the other retained the old value due to a partial deployment, stale process, or instance-specific configuration.\n\n**Confirm**\n1. Correlate signature failures with worker/instance ID in logs or load-balancer access logs.\n2. On each worker, verify:\n   - Deployment/restart timestamp\n   - Configuration or secret version identifier\n   - Whether the process actually restarted after the environment variable changed\n3. Compare a **non-reversible fingerprint** of the loaded secret, such as the first 8–12 characters of `SHA-256(secret)`. Do not print the secret itself.\n4. Temporarily route test webhooks directly to each worker, if supported.\n\n**Fix**\n- Restart or redeploy both workers from the same release and configuration source.\n- Confirm both processes load the same new-secret fingerprint.\n- Add a deployment health check that reports the secret’s version ID—not its value.\n\n---\n\n### 2. The secret was updated in only one configuration scope\n**Evidence**\n- Two otherwise equivalent workers can receive different environment values if they use different task definitions, Kubernetes secrets, namespaces, host-level environment files, or deployment revisions.\n- Updating a secret store does not always update the environment of already-running processes.\n\n**Confirm**\n- Inspect the effective deployment specification for each worker rather than only the secret-management UI.\n- Check for overrides at the service, instance, container, namespace, or environment level.\n- If using containers or orchestration, verify both workers are running the same image, revision, secret reference, and rollout generation.\n\n**Fix**\n- Remove per-instance overrides.\n- Pin both workers to the same secret version/reference.\n- Perform a full rollout and ensure old replicas are terminated.\n\n---\n\n### 3. The webhook provider is sending with both old and new secrets during a rotation transition\n**Evidence**\n- Some providers use the previous secret for queued events, retries, multiple webhook endpoints, or during a rotation grace period.\n- Events created before rotation may be delivered or retried afterward with signatures generated using the old secret.\n\n**Confirm**\n1. Check whether failures correlate with:\n   - Event creation timestamps before the rotation\n   - Retry indicators or delivery IDs\n   - A particular provider endpoint/configuration\n2. In a secure local test, verify failed payloads against the old secret and successful ones against the new secret.\n3. Review the provider’s documented rotation behavior and dashboard delivery records.\n\n**Fix**\n- If supported, temporarily verify against both current and immediately previous secrets:\n  1. Try the current secret first.\n  2. Try the previous secret only during a short, documented grace period.\n  3. Remove the old secret after queued/retried deliveries expire.\n- Alternatively, have the provider retry failed deliveries after all workers are corrected.\n\n**Risk:** Keeping the old secret valid widens the credential exposure window. Time-limit the fallback, restrict access, and monitor its use.\n\n---\n\n### 4. One worker loaded the new secret incorrectly\nExamples include trailing whitespace, quotes being included literally, newline/base64 handling, or using the secret identifier instead of its value.\n\n**Evidence**\n- A copy/paste or encoding issue could affect only one deployment target.\n- This produces the same near-50% symptom if traffic is evenly balanced.\n\n**Confirm**\n- Compare secret length and SHA-256 fingerprint on both workers and against a trusted local calculation.\n- Check whether the deployment system expects raw text or base64-encoded values.\n- Inspect configuration templates for literal quotes or newline insertion.\n\n**Fix**\n- Recreate the secret using the platform’s supported mechanism.\n- Avoid manual shell interpolation where possible.\n- Redeploy both workers and validate fingerprints.\n\n**Risk:** Do not log, email, or expose the actual secret while debugging.\n\n---\n\n### 5. Different application versions or verification settings are running\n**Evidence**\n- A partial rollout may leave one worker on older signature-verification code.\n- This is less likely because verification worked before rotation, but it can accompany a failed deployment.\n\n**Confirm**\n- Add or inspect application version, commit SHA, and signature algorithm/version in each request log.\n- Correlate failures by worker and release.\n- Confirm both workers use the raw request body and the same signature header parsing.\n\n**Fix**\n- Deploy one known-good build to all workers.\n- Ensure signature verification occurs against the exact raw request bytes before JSON parsing or body transformation.\n\n---\n\n## Recommended immediate sequence\n\n1. **Do not disable signature verification.**\n2. Correlate recent failures by worker ID. If all failures map to one worker, remove that worker from the load balancer or drain it.\n3. Compare secret-version IDs and hashed fingerprints across both running processes.\n4. Fully restart/redeploy both workers from the same configuration.\n5. Send provider test webhooks and verify successful processing on each worker independently.\n6. Determine whether failed events were signed with the old secret; if so, use a short dual-secret grace period if the provider supports that pattern.\n7. Replay failed deliveries from the provider dashboard after the fix, using event IDs to prevent duplicate processing.\n\n## Operational risks\n\n- **Duplicate processing:** Retried or replayed webhooks may already have produced side effects. Enforce idempotency using the provider’s event/delivery ID.\n- **Secret leakage:** Log only secret version IDs or short cryptographic fingerprints, never the secret.\n- **Disabling verification:** Even briefly, this permits forged requests and should not be used as a workaround.\n- **Old-secret fallback:** Keep it only for a bounded grace period and alert on any verification that requires it.",
+      "check": {
+        "method": "judge",
+        "passed": true,
+        "score": 4,
+        "reason": "The answer meets every criterion: it names one worker holding the old secret as the top cause, gives per-instance confirmation steps, covers the old-secret overlap with dual verification, gives the restart/redeploy fix, and warns against disabling verification. Its minor flaws are that it is overlong for a support reply, pads with speculative lower-likelihood causes, and describes the 'provider sends with both secrets' scenario slightly differently from the criterion's framing.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.007025999999999999,
+      "within_cost": true,
+      "within_latency": true,
+      "success": true
+    },
+    {
+      "run": 2,
+      "config": "routed",
+      "item_id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "mid",
+      "model": "gpt-5.6-terra",
+      "provider": "openai",
+      "route_reasons": [
+        "task troubleshoot starts at high",
+        "short ticket with no hard signals: down to mid"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-terra",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 21045
+        }
+      ],
+      "cost_usd": 0.01957,
+      "latency_ms": 21045,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 21045,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "## Most likely cause: one worker is still using the old signing secret\n\n**Why this fits**\n- Failures began immediately after rotation.\n- You have **two worker instances** behind a load balancer.\n- “About half” failing strongly suggests traffic is split between:\n  - one instance validating with the **new** secret, and\n  - one instance still validating with the **old** secret.\n- Updating environment variables does not necessarily update already-running processes, pods, containers, or deployment revisions.\n\n**Confirm**\n1. Add a temporary, safe diagnostic field to webhook-validation logs:\n   - worker hostname / pod name / container ID\n   - deployment revision or application build version\n   - a **non-reversible fingerprint** of the configured secret, e.g. first 8 chars of `SHA-256(secret)`—not the secret itself\n   - validation result\n2. Correlate failed validations by worker identity.\n3. Inspect the running configuration of both workers:\n   - Verify both are on the expected deployment revision/image.\n   - Verify both were restarted/recreated after the environment-variable update.\n   - Verify the deployed secret reference/version is the new one for both.\n\n**Fix**\n- Perform a rolling restart or redeploy that explicitly replaces **all** worker instances.\n- Verify the load balancer has removed any old/draining instances before declaring the rollout complete.\n- After restart, confirm both workers report the same secret fingerprint and all webhook validations succeed.\n\n**Risk**\n- Do **not** log the raw secret, full signing header, request body containing sensitive data, or computed signatures.\n- If the provider invalidated the old secret immediately, webhooks handled by the stale worker may have been rejected permanently. Identify and replay/redeliver those events if the provider supports it.\n\n---\n\n## Second most likely cause: the deployment contains mixed configuration or mixed application revisions\n\nThis is closely related to the first issue but can occur even if both instances were “redeployed.”\n\n**Examples**\n- One instance is serving an old container image or old release revision.\n- One worker reads a different environment-variable name than the other due to an application-version change.\n- A canary/blue-green deployment left an older target group attached to the load balancer.\n- One node has a stale secret volume, secret-manager cache, or sidecar-injected value.\n\n**Evidence to look for**\n- Different image digests, release IDs, startup times, or config versions between the two workers.\n- Failure rate maps exactly to a specific backend target.\n- One worker’s logs show a different configuration source, secret version, or startup timestamp.\n\n**Confirm**\n1. Check the load balancer’s target list and health status; ensure there are only the intended two current workers.\n2. Compare for each worker:\n   - image digest/build SHA\n   - deployment/revision ID\n   - process start time\n   - secret-manager version/ARN/reference (if applicable)\n   - secret fingerprint\n3. Check deployment history for failed or partial rollout events.\n\n**Fix**\n- Terminate/replace outdated targets.\n- Pin deployment to one known-good image/revision.\n- Ensure the secret is injected consistently from a single source.\n- Add a startup health/readiness check that fails if the expected secret reference/version is absent.\n\n---\n\n## Third most likely cause: one instance did not actually receive the updated environment variable\n\nSome platforms distinguish between changing a configuration setting and restarting workloads to consume it.\n\n**Why it is plausible**\n- Environment variables are normally read at process start.\n- Updating a platform setting may affect only newly started tasks, pods, or workers.\n- Long-lived workers can continue using the old value indefinitely.\n\n**Confirm**\n- Compare the configured environment variable or secret reference inside each running instance, using secure administrative tooling.\n- Check process/container start timestamps against the time the environment value was changed.\n- Review deployment events for pods/tasks that were not replaced because they were considered healthy.\n\n**Fix**\n- Force recreation of all workers rather than only restarting application logic.\n- If using Kubernetes, confirm the Deployment rollout completed and old ReplicaSets have zero live pods.\n- If using a managed container platform, force a new deployment/revision and verify all running tasks use it.\n- If using VMs/systemd, restart every service instance and verify process IDs/start times changed.\n\n**Risk**\n- Avoid shelling into production instances unless required and approved. Prefer platform configuration inspection and safe fingerprints over printing environment variables.\n\n---\n\n## Less likely cause: signature verification behavior differs between instances\n\nIf both instances definitely have the new secret, a code/configuration difference could cause one to verify a different payload than the sender signed.\n\n**Examples**\n- One worker version parses or reserializes JSON before verification rather than validating the exact raw request bytes.\n- Compression, character encoding, newline normalization, or middleware behavior differs by instance.\n- One instance uses a different webhook endpoint path or proxy configuration.\n- One instance has clock skew and the provider’s signature scheme includes a timestamp tolerance.\n\n**Evidence**\n- Both workers show the same secret fingerprint, but failures remain isolated to one worker.\n- Failed requests show different content encoding, content length, signature-header handling, or timestamp age on the failing instance.\n- The failing worker runs a different build or middleware configuration.\n\n**Confirm**\n1. Compare application build and dependency versions.\n2. Confirm both validate against the **raw, unmodified request body bytes**.\n3. Compare request-processing middleware order on both workers.\n4. Check system clocks/NTP status if signatures contain timestamps.\n5. Safely log metadata only:\n   - body byte length\n   - content type / content encoding\n   - signature-header presence and scheme/version\n   - timestamp age\n   - worker/build identity\n\n**Fix**\n- Standardize both workers on the same artifact and configuration.\n- Verify signatures before JSON parsing or body transformation.\n- Correct proxy/middleware behavior.\n- Restore NTP synchronization and use the provider-recommended timestamp tolerance.\n\n---\n\n## Immediate incident plan\n\n1. **Identify the handling worker for failed versus successful deliveries.**  \n   This should quickly prove or disprove the stale-instance hypothesis.\n\n2. **Remove or restart any stale worker.**  \n   If evidence points to a particular backend, drain it from the load balancer first, then replace it.\n\n3. **Verify all running workers use the same new-secret fingerprint and build revision.**\n\n4. **Check provider delivery history.**  \n   List events that failed during the rotation window and replay/redeliver them after the fix.\n\n5. **Consider a temporary dual-secret validation window only if supported and necessary.**  \n   If the provider may still send requests signed with the prior secret, validation can temporarily accept either old or new secret. Remove old-secret support promptly after the provider’s overlap window ends.\n\n   **Security risk:** accepting both secrets extends the validity of the old credential. Use only for a short, documented transition period, store both securely, and set a firm removal time.\n\n---\n\n## Preventive improvements\n\n- Include worker ID, deployment revision, and a safe configuration/secret-version identifier in structured logs.\n- Make secret rotation a rollout procedure: update secret → recreate all workers → verify uniform revision/fingerprint → monitor validation success → replay failed events.\n- Add an automated post-deploy check that queries every backend instance and confirms expected build/config version without exposing secret values.\n- Alert on signature-validation failures broken down by worker instance; a 50/50 split should be immediately visible.",
+      "check": {
+        "method": "judge",
+        "passed": false,
+        "score": 2,
+        "reason": "It meets most criteria (stale instance as likely cause, per-instance confirmation, restart-all fix, dual-secret overlap, replay of failed events) but never warns against disabling signature verification, and it asserts unsupported specifics such as provider replay/redelivery of events and the old secret possibly being invalidated immediately, which are not in the ticket.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.007776,
+      "within_cost": true,
+      "within_latency": true,
+      "success": false
+    },
+    {
+      "run": 2,
+      "config": "all-small",
+      "item_id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "status": 200,
+      "error": null,
+      "tier": "low",
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "route_reasons": [
+        "task troubleshoot starts at high",
+        "short ticket with no hard signals: down to mid",
+        "tier mid unavailable for tenant or registry; using low"
+      ],
+      "fallback_used": false,
+      "escalated": false,
+      "attempts": [
+        {
+          "model": "gpt-5.6-luna",
+          "outcome": "ok",
+          "error_kind": null,
+          "latency_ms": 10615
+        }
+      ],
+      "cost_usd": 0.001225,
+      "latency_ms": 10615,
+      "stage_timings": {
+        "validate": 0,
+        "rate_limit": 0,
+        "cache": 0,
+        "admission": 0,
+        "routing": 0,
+        "provider": 10615,
+        "usage_capture": 0,
+        "accounting": 0
+      },
+      "answer": "## Likely causes, in order\n\n### 1. One worker still has the old secret\n**Why likely:** The failure rate is about 50%, matching traffic being split between two workers. An environment-variable update followed by a redeploy may have updated only one instance, or one worker may not have restarted.\n\n**Confirm:**\n- Log the worker instance ID and a **non-reversible fingerprint** of the loaded secret at process startup, for example:\n  - `sha256(secret)` truncated to 8–12 characters\n- Compare the fingerprint across both workers.\n- Verify each worker’s deployment version, container ID, startup time, and environment/config source.\n- Send repeated test webhooks while recording which worker handles each request and whether verification succeeds.\n\n**Fix:**\n- Ensure the new secret is updated in the authoritative secret/config store.\n- Restart or redeploy **both** workers.\n- Confirm both report the same new-secret fingerprint.\n- Remove old instances from the load balancer only after readiness checks pass.\n\n**Risk:** Do not log the actual signing secret. Treat fingerprints as sensitive operational data and avoid exposing them publicly.\n\n---\n\n### 2. Secret configuration differs between runtime and deployment configuration\n**Why likely:** The environment variable may have been changed in one deployment mechanism, while workers receive configuration from another source—such as a secret manager, mounted file, Kubernetes Secret, or systemd configuration.\n\n**Confirm:**\n- Identify the actual configuration source used by the running process.\n- Inspect the resolved variable inside each running worker, without printing the secret.\n- Check deployment manifests, secret-manager versions, mounted files, and startup scripts.\n- Confirm there is no variable-name mismatch, such as `WEBHOOK_SECRET` versus `WEBHOOK_SIGNING_SECRET`.\n\n**Fix:**\n- Update the correct source of truth.\n- Redeploy all workers from the same immutable configuration revision.\n- Add a startup check that fails deployment if the signing secret is missing or inconsistent.\n\n---\n\n### 3. Old and new secrets are being used during a partial rotation\n**Why possible:** Some webhook providers support a rotation period in which both the old and new secret are valid, while others switch immediately. Your application may need to accept both temporarily, or the provider may still be signing some deliveries with the old secret.\n\n**Confirm:**\n- Check the provider’s rotation behavior and documentation.\n- Review provider delivery logs for signature timestamps, webhook endpoint, and delivery IDs.\n- Determine whether failed requests are consistently associated with one worker or with particular delivery times.\n- If permitted by your provider, validate failed payloads against both the old and new secret in a controlled diagnostic path.\n\n**Fix:**\n- If supported, verify against the new secret first and the old secret second during a defined migration window.\n- Remove the old secret after all deliveries signed with it have expired or been retried.\n- If the provider switched immediately, ensure every worker uses only the new secret.\n\n**Risk:** Supporting two secrets indefinitely weakens operational clarity. Set an explicit expiration and alert when the old secret is used.\n\n---\n\n### 4. Signature verification input changed during the deployment\n**Why possible:** The secret rotation may coincide with a code/config change that parses, decodes, or normalizes the request body differently. Signature checks generally require the exact raw request bytes and exact signature-header format.\n\n**Confirm:**\n- Compare the deployed application version before and after rotation.\n- Verify that the raw body is used, before JSON parsing, whitespace normalization, decompression, or character conversion.\n- Check signature-header parsing, algorithm, encoding, timestamp tolerance, and any required signed headers.\n- Compare a known provider payload and signature against a local verification test.\n\n**Fix:**\n- Restore raw-body handling.\n- Ensure the exact provider-specified HMAC algorithm and encoding are used.\n- Roll back unrelated code changes if necessary.\n\n---\n\n### 5. Load balancer or routing behavior is masking the real split\n**Why possible:** “Two workers” may not be the only consumers. There could be a stale instance, a separate region, a queue consumer, or a health-check/routing issue.\n\n**Confirm:**\n- Include instance ID, deployment revision, and verification result in structured logs.\n- Aggregate failures by instance, zone, region, and revision.\n- Check load-balancer target membership and connection draining.\n- Look for old tasks/pods/VMs still receiving traffic.\n\n**Fix:**\n- Drain and terminate stale instances.\n- Make readiness checks validate configuration presence and revision.\n- Prevent mixed-version capacity during secret rotations.\n\n## Recommended immediate procedure\n\n1. Preserve representative failed requests’ metadata: delivery ID, timestamp, target instance, deployment revision, and signature result. Do not log payloads or secrets unless securely redacted.\n2. Compare the loaded-secret fingerprint on both workers.\n3. Check for stale workers or mixed deployment revisions.\n4. Verify the provider’s rotation semantics and whether dual-secret validation",
+      "check": {
+        "method": "judge",
+        "passed": false,
+        "score": 3,
+        "reason": "The answer correctly names the stale-instance cause tied to the ~50% rate, gives per-instance confirmation, gives the restart/redeploy fix, and covers the dual-secret overlap, but it never warns against disabling signature verification and is cut off mid-sentence. It also adds unsupported speculation (provider rotation behavior, Kubernetes, systemd) that is not in the ticket.",
+        "judge_model": "claude-sonnet-5-5"
+      },
+      "judge_cost_usd": 0.0062120000000000005,
+      "within_cost": true,
+      "within_latency": true,
+      "success": false
+    }
+  ]
+}
