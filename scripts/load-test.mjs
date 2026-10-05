@@ -94,15 +94,16 @@ END $$;` + readFileSync('supabase-schema.sql', 'utf8'), db.toString());
   const scenarios = [];
   const runs = [['one-tenant', 1, SETTLE], ['many-tenants', TENANTS, SETTLE], ['many-tenants, no global row (diagnostic)', TENANTS, SETTLE_TENANT_ONLY]];
   for (const [name, tenants, settle] of runs) {
-    await sql(`TRUNCATE request_attempts, verification_jobs, request_runs, rate_limit_windows, tenant_usage; DELETE FROM model_usage WHERE month='${MONTH}'; DELETE FROM budget_tracking WHERE month='${MONTH}';`, db.toString());
+    await sql(`TRUNCATE request_attempts, verification_jobs, request_runs, rate_limit_windows, tenant_usage; DELETE FROM model_usage WHERE month='${MONTH}'; DELETE FROM budget_usage_shards WHERE month='${MONTH}'; DELETE FROM budget_tracking WHERE month='${MONTH}';`, db.toString());
     const r = await pgbench(name.split(',')[0] + (settle === SETTLE ? '' : '-diagnostic'), request(settle), tenants, dir);
     const n = String(r.processed);
     // Every completed request must be charged, counted and logged exactly once.
     await check(`${name}: tenant requests`, `SELECT sum(total_requests) FROM tenant_usage WHERE month='${MONTH}'`, n);
     await check(`${name}: tenant cost`, `SELECT sum(total_cost) = ${n} * ${COST} FROM tenant_usage WHERE month='${MONTH}'`, 't');
     if (settle === SETTLE) {
-      await check(`${name}: global requests`, `SELECT total_requests FROM budget_tracking WHERE month='${MONTH}'`, n);
-      await check(`${name}: global cost`, `SELECT total_cost = ${n} * ${COST} FROM budget_tracking WHERE month='${MONTH}'`, 't');
+      await check(`${name}: global requests`, `SELECT total_requests FROM ensure_budget_month('${MONTH}', 1000000)`, n);
+      await check(`${name}: global cost`, `SELECT total_cost = ${n} * ${COST} FROM ensure_budget_month('${MONTH}', 1000000)`, 't');
+      await check(`${name}: model requests`, `SELECT total_requests FROM model_usage_totals WHERE month='${MONTH}'`, n);
     }
     await check(`${name}: rate-limit requests`, `SELECT sum(requests) FROM rate_limit_windows`, n);
     await check(`${name}: rate-limit tokens`, `SELECT sum(tokens) = ${n} * 800 FROM rate_limit_windows`, 't');
