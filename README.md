@@ -37,6 +37,55 @@ auth is appropriate for a restricted demo, not a multi-tenant product. Browser
 credential logout/change requires clearing site credentials or a new private
 session. Do not share an admin credential with demo users.
 
+## Gateway API: `POST /api/generate`
+
+Tenants call one endpoint with their own API key. The key identifies the tenant;
+the request body cannot name one.
+
+```sh
+curl -X POST https://<host>/api/generate \
+  -H "Authorization: Bearer rw_xxxxxxxx_..." -H "Content-Type: application/json" \
+  -d '{"task_type":"classify","input":"I was charged twice for order 1182","priority":"normal","max_cost_usd":0.01}'
+```
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `task_type` | yes | `classify`, `extract`, `summarize`, `draft_reply`, `troubleshoot` or `chat` |
+| `input` | yes | Up to 16,000 characters |
+| `priority` | no | `low`, `normal` (default) or `high`; recorded now, used by routing in rules-v1 |
+| `max_cost_usd` | no | Rejects with 402 if the worst-case cost (estimated input plus the template's output cap) is higher |
+| `latency_target_ms` | no | 500 to 120,000; recorded now, drives timeouts once retries land |
+| `prompt_version` | no | e.g. `summarize@v1`; defaults to the newest version of the task's template |
+
+Unknown fields are rejected. A success returns `answer` plus `metadata` with the
+model, tier, provider, prompt version, route reasons, tokens, `cost_usd`,
+`latency_ms`, `fallback_used` and the tenant's remaining budget. Errors return
+`{error, request_id}`: 400/413 invalid input, 401 bad key, 402 tenant budget or
+`max_cost_usd`, 429 rate limit (with `Retry-After`), 502 provider failure, 503
+global budget or a dependency outage. Rejections after authentication are logged
+in `request_runs` with the stage that stopped them.
+
+Each tenant has a monthly budget, requests-per-minute and tokens-per-minute
+limits, and the tiers it may use. Limits are counted in Postgres, so they hold
+across serverless instances. Tokens are reserved before the call (estimated input
+plus the output cap) and corrected to actual usage afterwards. Tenant spend and
+global spend are charged in one transaction. Create a tenant (the key is printed
+once; only its SHA-256 hash is stored):
+
+```sh
+npm run tenant:create -- --name acme --budget 5 --rpm 30 --tpm 20000 --tiers low,mid,high
+```
+
+Until rules-v1, each task type starts at a fixed tier (classify and extract: low;
+summarize and draft_reply: mid; troubleshoot: high). If the tenant may not use
+that tier or no model is enabled for it, the nearest usable tier is chosen,
+cheaper on ties, and the reason is recorded. `chat` keeps the original
+heuristic-v1 router. Prompt templates live in `prompts/`; their system text never
+contains request input, so it is a stable prefix for providers' prompt caching.
+
+The chat UI (`/api/route-query`) is a thin wrapper that runs `chat` tasks as the
+built-in `demo` tenant, which migration 009 creates with a $1 monthly budget.
+
 ## Database setup and migrations
 
 For a **fresh, empty** Supabase project, execute `supabase-schema.sql` in the SQL
@@ -54,6 +103,7 @@ to run once; there is no automatic migration ledger.
 6. 006: routing decision reasons.
 7. 007: consent-based verification jobs and atomic worker claim.
 8. 008: bounded analytics and retention maintenance.
+9. 009: tenants, per-tenant budgets and Postgres rate limits.
 
 Apply migrations before deploying code, preferably with traffic paused because
 005 changes an RPC signature. Existing monthly balances and budget limits are
@@ -66,8 +116,8 @@ beginning of historical records. See `migrations/README.md` and
 
 The browser calls protected Next.js API routes. The request handler coordinates:
 
-validate → admission → routing → provider → usage capture → atomic accounting →
-telemetry → response. Every routed request has a UUID. RequestRun stores actual
+validate → rate limit → admission → routing and cost check → provider → usage
+capture → atomic accounting → telemetry → response. Every routed request has a UUID. RequestRun stores actual
 model, tier, difficulty, reasons, policy/pricing versions, tokens, cost, latency,
 provider/application outcomes and failure stage/category.
 
@@ -90,8 +140,8 @@ UTC month, model ID and tier in the same transaction. Existing configured monthl
 limits are not overwritten by environment changes. Default limit remains $100.
 
 Routing becomes more conservative at 80%/90% usage; admission blocks at 100%.
-The configured alert threshold controls warnings, not routing. No reservation,
-settlement ledger, idempotency ledger or distributed rate limiter was added.
+The configured alert threshold controls warnings, not routing. Per-tenant rate limits are counted in Postgres (migration 009). There is no
+spend reservation, settlement ledger or idempotency ledger.
 An uncertain RPC response requires reconciliation, not blindly replaying charges.
 The legacy reset endpoint is protected but retains its known upsert semantics;
 its dashboard button was removed. Resetting counters never reverses provider

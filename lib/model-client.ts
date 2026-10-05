@@ -12,9 +12,19 @@ function getOpenAI() {
 }
 
 // Send a query to the specified model
+export interface CallOptions {
+  /** Defaults to the original RouteWise chat system prompt. */
+  system?: string;
+  /** Capped at the registry's limit for the model. */
+  maxOutputTokens?: number;
+}
+
+export const DEFAULT_SYSTEM_PROMPT = 'You are a helpful assistant that provides accurate and concise answers to user questions.';
+
 export async function callModel(
   query: string,
-  model: ModelName
+  model: ModelName,
+  options: CallOptions = {}
 ): Promise<ModelResponse> {
   const startTime = Date.now();
 
@@ -28,7 +38,7 @@ export async function callModel(
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that provides accurate and concise answers to user questions.'
+          content: options.system ?? DEFAULT_SYSTEM_PROMPT
         },
         {
           role: 'user',
@@ -36,7 +46,7 @@ export async function callModel(
         }
       ],
       temperature: config.temperature,
-      max_tokens: config.maxOutputTokens,
+      max_tokens: Math.min(options.maxOutputTokens ?? config.maxOutputTokens, config.maxOutputTokens),
     });
 
     const endTime = Date.now();

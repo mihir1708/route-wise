@@ -21,6 +21,7 @@
     "eval:compare": "node --import tsx scripts/compare.ts",
     "eval:pareto": "node --import tsx scripts/pareto.ts",
     "maintenance": "node --import tsx scripts/maintenance.ts",
+    "tenant:create": "node --import tsx scripts/create-tenant.ts",
     "eval:promote": "node --import tsx scripts/dataset-review.ts"
   },
   "engines": {
