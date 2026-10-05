@@ -237,7 +237,7 @@ describe('structured output', () => {
 
   it('does not escalate past max_cost_usd', async () => {
     const d = deps(); d.route = vi.fn().mockResolvedValue(LOW); d.call = vi.fn().mockResolvedValue(INVALID);
-    const r = await executeGenerate({ ...classify, max_cost_usd: 0.0002 }, TENANT, d);
+    const r = await executeGenerate({ ...classify, max_cost_usd: 0.0005 }, TENANT, d);
     expect(r.status).toBe(502); expect(calledModels(d)).toEqual(['o-low']);
     expect(r.run.route_reasons.at(-1)).toContain('escalation not affordable');
   });
@@ -313,7 +313,7 @@ it('rejects oversized input with 413 before rate limits or budget access', async
 
 it('defaults priority and prompt version', () => {
   const parsed = parseGenerateRequest({ task_type: 'classify', input: 'refund please' });
-  expect(parsed).toMatchObject({ priority: 'normal', max_cost_usd: null, latency_target_ms: null, cache: true, prompt: { task: 'classify', version: 'v1' } });
+  expect(parsed).toMatchObject({ priority: 'normal', max_cost_usd: null, latency_target_ms: null, cache: true, prompt: { task: 'classify', version: 'v2' } });
 });
 
 it('estimates about four characters per token plus message overhead', () => {

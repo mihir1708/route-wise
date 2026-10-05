@@ -1,0 +1,747 @@
+{
+  "version": "support-v1",
+  "description": "Support tickets for Ledgerly, a fictional SaaS invoicing and payments product that also ships card readers. Written for the RouteWise routing experiment; every item needs a human review before a live run.",
+  "items": [
+    {
+      "id": "classify-01",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "Hi, I was charged twice for my March subscription: two charges of $49 on my card ending 4421, both on March 3. Can you refund one of them?",
+      "expected": {
+        "category": "billing",
+        "urgency": "medium"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-02",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "high",
+      "input": "None of our customers can pay their invoices since this morning. The Pay button on every invoice shows 'Payment processor unavailable'. We are losing sales, please fix this ASAP.",
+      "expected": {
+        "category": "technical",
+        "urgency": "high"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-03",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "How do I add my company logo to the invoice emails we send?",
+      "expected": {
+        "category": "technical",
+        "urgency": "low"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-04",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "I can't log in. It says my two-factor code is invalid every time, and I got a new phone last week. I have to send invoices to three clients today.",
+      "expected": {
+        "category": "account",
+        "urgency": "high"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-05",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "Our card reader order SH-20931 was supposed to arrive last Friday and the tracking hasn't updated in six days. We can keep using our old reader for now.",
+      "expected": {
+        "category": "shipping",
+        "urgency": "medium"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-06",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "It would be great if you supported invoices in Japanese yen. Not urgent, just a suggestion for the roadmap.",
+      "expected": {
+        "category": "other",
+        "urgency": "low"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-07",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "Please remove our former employee jordan.lee@brightpath.io from our workspace right away. They left on bad terms yesterday and still have admin access to our payouts.",
+      "expected": {
+        "category": "account",
+        "urgency": "high"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "classify-08",
+      "class": "simple",
+      "task_type": "classify",
+      "priority": "normal",
+      "input": "The QuickBooks sync has been failing with error QB-409 for two days. I can export CSVs and import them by hand in the meantime, it's just tedious.",
+      "expected": {
+        "category": "technical",
+        "urgency": "medium"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-01",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "Order LDG-48213: the Card Reader Mini arrived with a cracked screen. Please send a new one. You can reach me at maria.gomez@sunsetbakery.com.",
+      "expected": {
+        "order_id": "LDG-48213",
+        "product": [
+          "Card Reader Mini",
+          "Ledgerly Card Reader Mini"
+        ],
+        "customer_email": "maria.gomez@sunsetbakery.com",
+        "requested_action": "replacement"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-02",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "Hello, I'd like to cancel our Payroll add-on at the end of this billing cycle. Account email: ops@northwindlabs.co. Thanks, Dev",
+      "expected": {
+        "order_id": null,
+        "product": [
+          "Payroll add-on",
+          "Payroll"
+        ],
+        "customer_email": "ops@northwindlabs.co",
+        "requested_action": "cancel"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-03",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "We were charged $120 for a Business plan upgrade on invoice INV-2026-0912, but nobody on our team clicked upgrade. Please refund that charge.",
+      "expected": {
+        "order_id": "INV-2026-0912",
+        "product": [
+          "Business plan",
+          "Business",
+          "Business plan upgrade"
+        ],
+        "customer_email": null,
+        "requested_action": "refund"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-04",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "The API has returned 500 on POST /v1/invoices since 2pm UTC and our checkout is blocked. Contact: dev@kitebox.app",
+      "expected": {
+        "order_id": null,
+        "product": [
+          "API",
+          "Ledgerly API",
+          "Invoices API",
+          "/v1/invoices",
+          "POST /v1/invoices"
+        ],
+        "customer_email": "dev@kitebox.app",
+        "requested_action": "technical_fix"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-05",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "Quick question before we sign up: does Ledgerly Payments support Apple Pay?",
+      "expected": {
+        "order_id": null,
+        "product": [
+          "Ledgerly Payments",
+          "Payments"
+        ],
+        "customer_email": null,
+        "requested_action": "question"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-06",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "Please update the company address printed on our invoices to 12 Pier Road, Halifax. Sam (sam@harborcoffee.com)",
+      "expected": {
+        "order_id": null,
+        "product": [
+          null,
+          "invoices",
+          "Invoicing",
+          "Ledgerly Invoicing"
+        ],
+        "customer_email": "sam@harborcoffee.com",
+        "requested_action": "update_details"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "extract-07",
+      "class": "simple",
+      "task_type": "extract",
+      "priority": "normal",
+      "input": "My subscription renewed on 2 October even though I cancelled on 28 September. Order ref ORD-77120. Refund please. Priya, priya@lumenstudio.design",
+      "expected": {
+        "order_id": "ORD-77120",
+        "product": [
+          null,
+          "subscription",
+          "Ledgerly subscription"
+        ],
+        "customer_email": "priya@lumenstudio.design",
+        "requested_action": "refund"
+      },
+      "max_cost_usd": 0.1,
+      "latency_target_ms": 30000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-01",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "input": "[Customer, Oct 1] Our payout of $3,240 scheduled for September 30 hasn't arrived in our bank account.\n[Agent Lena, Oct 1] Thanks for reaching out. I can see the payout was sent on September 30. Banks can take up to 2 business days, so please check again on October 3.\n[Customer, Oct 3] Still nothing. Our bank says there is no incoming transfer from Ledgerly.\n[Agent Lena, Oct 3] I'm sorry about that. I've asked our payments team to trace the transfer with the bank. I'll update you as soon as I hear back.\n[Customer, Oct 4] Any update? We need this money for payroll on October 7.",
+      "rubric": [
+        "States that a $3,240 payout sent on September 30 has not reached the customer's bank, and the bank sees no incoming transfer",
+        "States that the payments team was asked to trace the transfer and no result has come back yet",
+        "Mentions the customer needs the funds for payroll on October 7",
+        "Gives the next action: chase the payments team trace and update the customer before October 7",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-02",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "low",
+      "input": "[Customer, Sep 22] Since your update last week, the CSV export of invoices is missing the tax column. Our accountant needs it for the quarterly filing.\n[Agent Omar, Sep 22] Thanks for flagging. Could you tell me which browser you're using and try another one?\n[Customer, Sep 22] Chrome and Firefox both give the same file without the tax column.\n[Agent Omar, Sep 23] I reproduced it on my side, this is a bug. I've filed it with engineering as ENG-5521. In the meantime, the XLSX export still includes the tax column.\n[Customer, Sep 23] The XLSX works for our accountant, thanks. Please let me know when CSV is fixed.",
+      "rubric": [
+        "States that the CSV export has lacked the tax column since last week's update, in multiple browsers",
+        "States support reproduced it and filed it as ENG-5521",
+        "Mentions the XLSX export as a working workaround that the customer accepted",
+        "Gives the next action: tell the customer when the CSV fix ships",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "notes": "Priority low: routed config should step this down to the small tier.",
+      "reviewed": false
+    },
+    {
+      "id": "summarize-03",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "input": "[Customer, Oct 2] My whole team is stuck in a login loop with Google sign-in. It sends us back to the login page every time.\n[Agent Priya, Oct 2] Sorry about that. Could you try clearing cookies, or an incognito window?\n[Customer, Oct 2] Tried both, same loop for all 6 of us.\n[Agent Priya, Oct 2] I looked at your workspace: single sign-on is configured for the domain acme.io, but your team is now signing in with @acmehq.com addresses. Did you change domains recently?\n[Customer, Oct 2] Yes, we moved to acmehq.com on Monday. But I can't update the SSO settings myself, because I can't log in either.\n[Agent Priya, Oct 2] Understood. Once you confirm domain ownership by adding the TXT record I've emailed you, I can update the SSO domain from our side.",
+      "rubric": [
+        "States that all six users are stuck in a Google sign-in loop and that clearing cookies or using incognito did not help",
+        "Identifies the cause: SSO is set to acme.io but the team moved to acmehq.com",
+        "Explains the customer cannot fix it themselves because they are locked out",
+        "Gives the next action: customer adds the TXT record to prove domain ownership, then support updates the SSO domain",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-04",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "input": "[Customer, Sep 29] We want to downgrade from Business to Starter. Will we lose any data?\n[Agent Ken, Sep 29] You won't lose invoices or customers. The main difference is that Starter allows up to 2 users, and you currently have 5.\n[Customer, Sep 29] OK, I'll remove three users first. How much credit do we get?\n[Agent Ken, Sep 29] Once you downgrade, the unused part of this month on Business becomes a prorated credit. For you that's $36, applied to your next invoice.\n[Customer, Sep 30] Great, I'll remove the users this week and then downgrade.",
+      "rubric": [
+        "States the customer wants to move from Business to Starter, and that no invoices or customer data will be lost",
+        "Explains Starter allows 2 users and they have 5, so they will remove 3 users first",
+        "Mentions the $36 prorated credit on the next invoice",
+        "Gives the status: waiting for the customer to remove users and downgrade; next action is to confirm the downgrade and credit",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-05",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "input": "[Customer, Oct 1] Our card reader order SH-20931 is a week late and tracking hasn't moved.\n[Agent Lena, Oct 2] I checked with the carrier and they've confirmed the package was lost. I'm very sorry. I've sent a replacement reader under order SH-21044, tracking number 1Z84F6W30312345678.\n[Customer, Oct 2] Thanks. Can you upgrade the shipping? We open a second location on October 10.\n[Agent Lena, Oct 2] Done. I've switched the replacement to express shipping at no charge. The carrier now estimates delivery on October 8.",
+      "rubric": [
+        "States the original order SH-20931 was lost by the carrier",
+        "States a replacement was sent as SH-21044 with express shipping at no charge",
+        "Mentions the expected delivery of October 8 and the customer's October 10 opening",
+        "Gives the next action: confirm the replacement arrives by October 8",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-06",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "input": "[Customer, Sep 25] We keep receiving duplicate invoice.paid webhooks, sometimes three of the same event. It's double-crediting customer accounts in our system.\n[Agent Omar, Sep 25] Ledgerly retries a webhook when your endpoint doesn't return a 2xx response within 10 seconds. How long does your endpoint take to respond?\n[Customer, Sep 25] Our logs show about 15 seconds, since we update our database and send an email before responding.\n[Agent Omar, Sep 25] That explains the retries. Return 200 as soon as you receive the event and do the work in the background. Also store the event ID and skip events you've already processed.\n[Customer, Sep 27] Done both. No duplicates in two days.\n[Agent Omar, Sep 27] Great. I'll keep this open until Monday in case anything comes back, then close it.",
+      "rubric": [
+        "States the customer got duplicate invoice.paid webhooks that double-credited accounts",
+        "Identifies the cause: their endpoint took about 15 seconds, over the 10-second limit, so Ledgerly retried",
+        "States the fix: respond 200 immediately, process in the background, and skip already-processed event IDs",
+        "Gives the status: no duplicates for two days; ticket to be closed on Monday if nothing recurs",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-07",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "normal",
+      "input": "[Customer, Sep 30] Invoices to our Ontario customers show 5% tax, but it should be 13% HST.\n[Agent Ken, Sep 30] Your tax profile for Ontario is set to GST only (5%). You can switch it to HST (13%) under Settings > Taxes.\n[Customer, Sep 30] Fixed, new invoices show 13%. But we already sent 14 invoices with 5%. Can you reissue them?\n[Agent Ken, Oct 1] We can't edit sent invoices. The usual approach is to issue a credit note for each one and send a corrected invoice. I can send you our guide for doing that in bulk.\n[Customer, Oct 1] Let me check with our accountant first whether we need to reissue or can just invoice the difference.",
+      "rubric": [
+        "States Ontario invoices used 5% GST instead of 13% HST because of the tax profile setting, which the customer has now fixed",
+        "Mentions 14 invoices were already sent with the wrong tax",
+        "Explains sent invoices cannot be edited; the option is credit notes plus corrected invoices",
+        "Gives the status: waiting for the customer to check with their accountant; next action is to send the bulk guide if needed",
+        "At most five bullets, and nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "summarize-08",
+      "class": "standard",
+      "task_type": "summarize",
+      "priority": "low",
+      "input": "[Customer, Oct 3] Hi there! Hope you're having a great week. Our auditor has asked for copies of every invoice we issued in 2025, as PDFs. Is there a quick way to get them all? Thanks so much!\n[Agent Priya, Oct 3] Hi! Happy to help. You can bulk export PDFs under Reports > Export.\n[Customer, Oct 3] Thanks! I don't see that option. Maybe it's because we're on Starter?\n[Agent Priya, Oct 3] You're right, bulk export is a Business feature. I've generated the export for you manually: here's a download link for a ZIP of all 412 invoices from 2025. It works for 7 days.\n[Customer, Oct 3] Amazing, thank you! I'll download it after lunch.",
+      "rubric": [
+        "States the customer needed all 2025 invoices as PDFs for an auditor",
+        "Explains bulk export is not on their Starter plan, so support generated a ZIP of 412 invoices manually",
+        "Mentions the download link expires after 7 days",
+        "Gives the status: link sent, customer has not yet confirmed the download; next action is to confirm they got it",
+        "Leaves out the small talk, uses at most five bullets, and adds nothing that is not in the thread"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "notes": "Priority low; tests that the summary drops pleasantries.",
+      "reviewed": false
+    },
+    {
+      "id": "draft-01",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "normal",
+      "input": "Customer: Hi, a client paid an invoice of $800 but we agreed to a $200 discount afterwards. How do I give them a partial refund?\n\nKnowledge base excerpt: Partial refunds: open the payment, click Refund, and enter an amount lower than the total. Refunds take 5 to 10 business days to reach the customer's card. Processing fees from the original payment are not returned.",
+      "rubric": [
+        "Gives the steps: open the payment, click Refund, enter $200 (an amount lower than the total)",
+        "Says the refund takes 5 to 10 business days to reach the card",
+        "Says the original processing fee is not returned",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "draft-02",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "normal",
+      "input": "Customer: We want to change our invoice numbers from INV-001 style to 2026-001 style. Can we do that now, in the middle of the year, without messing up old invoices?\n\nKnowledge base excerpt: Invoice numbering: change the format under Settings > Invoices > Numbering. Changes apply to new invoices only; existing invoices keep their numbers. Every invoice number must be unique.",
+      "rubric": [
+        "Says yes, under Settings > Invoices > Numbering",
+        "Says existing invoices keep their old numbers and only new invoices use the new format",
+        "Mentions that numbers must be unique",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "draft-03",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "normal",
+      "input": "Customer: We're on the Starter plan with 2 users. Can I add our new bookkeeper as a third user?\n\nKnowledge base excerpt: Users per plan: Starter allows up to 2 users, Business up to 10, Enterprise unlimited. Plan changes take effect immediately and charges are prorated.",
+      "rubric": [
+        "Explains Starter is limited to 2 users, so a third user needs an upgrade (Business allows up to 10)",
+        "Says the plan change takes effect immediately and is prorated",
+        "Does not state a price, since the excerpt gives none (may point to the pricing page or offer to confirm)",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "draft-04",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "normal",
+      "input": "Customer: Do you support SEPA Direct Debit? Most of our customers are in Germany.\n\nKnowledge base excerpt: Supported payment methods: card payments, ACH bank debit (US only) and PayPal.",
+      "rubric": [
+        "Says SEPA Direct Debit is not among the supported methods listed (card, ACH for the US, PayPal)",
+        "Does not claim SEPA is supported or promise it will be added",
+        "May suggest cards or PayPal for German customers, or offer to check with the team",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "draft-05",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "normal",
+      "input": "Customer: My new card reader won't pair with my phone. The light just keeps flashing red.\n\nKnowledge base excerpt: Pairing a card reader: turn on Bluetooth, hold the power button for 5 seconds until the light flashes blue, then select the reader under Settings > Hardware in the app. A flashing red light means the battery is low: charge the reader for 30 minutes first.",
+      "rubric": [
+        "Explains the red light means a low battery, so charge the reader for 30 minutes first",
+        "Then gives the pairing steps: Bluetooth on, hold power 5 seconds until it flashes blue, select it under Settings > Hardware",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "draft-06",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "normal",
+      "input": "Customer: We're closing the business. Please delete all our data under GDPR.\n\nKnowledge base excerpt: Account deletion: the account owner requests deletion under Settings > Account > Delete. Data is deleted within 30 days. Invoices that must be kept for tax records are retained for 7 years, as required by law.",
+      "rubric": [
+        "Explains the account owner must request deletion under Settings > Account > Delete",
+        "Says data is deleted within 30 days",
+        "Says invoices needed for tax records are kept for 7 years as required by law",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "reviewed": false
+    },
+    {
+      "id": "draft-07",
+      "class": "standard",
+      "task_type": "draft_reply",
+      "priority": "low",
+      "input": "Customer: A client paid a $1,000 invoice by card but our payout was only $970.70. Where did the rest go?\n\nKnowledge base excerpt: Payouts are net of processing fees (2.9% + 30 cents per card payment) and any refunds or chargebacks in the payout period.",
+      "rubric": [
+        "Explains the payout is net of the card processing fee of 2.9% + 30 cents",
+        "Shows the fee is $29.30 on $1,000, which accounts for the $970.70 payout",
+        "Polite and brief, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.15,
+      "latency_target_ms": 45000,
+      "notes": "Priority low: routed config should step this down to the small tier.",
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-01",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "About half of our incoming webhooks have failed our signature check since we rotated the webhook signing secret yesterday. We updated the secret in our environment variables and redeployed. We run two worker instances behind a load balancer. Before the rotation, everything passed.",
+      "rubric": [
+        "Names the most likely cause: one of the two instances still has the old secret (not updated or not restarted), which fits the roughly 50% failure rate",
+        "Gives a way to confirm: compare failures per instance, or check the secret each instance actually loaded",
+        "Mentions events signed with the old secret during the rotation as a secondary cause, and verifying against both secrets for a short overlap",
+        "Gives the fix: make sure every instance has the new secret, then restart or redeploy them",
+        "Warns not to disable signature verification as a workaround"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-02",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "Since we switched invoice emails to send from our own domain (billing@harborcoffee.com) last week, customers say the invoices land in spam. Before, they came from Ledgerly's default address and were fine.",
+      "rubric": [
+        "Names missing or wrong email authentication for the custom domain (SPF, DKIM, DMARC alignment) as the likely cause",
+        "Gives steps to confirm: check the DNS records, check the domain verification status in Ledgerly, test with a mail checker or by reading message headers",
+        "Gives the fix: add or correct the SPF include and DKIM records, and make DMARC align",
+        "Flags a risk, for example a strict DMARC policy causing rejections, or reverting to the default sender while fixing"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-03",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "At month end we create about 500 invoices through the API. We run 20 parallel workers in a loop, and most requests fail with HTTP 429 after the first minute. Our plan's API limit is 100 requests per minute. When a request fails we retry immediately.",
+      "rubric": [
+        "Identifies the cause: 20 parallel workers exceed the 100 requests per minute limit, and immediate retries make it worse",
+        "Recommends honoring Retry-After and exponential backoff with jitter instead of immediate retries",
+        "Recommends throttling total throughput below the limit (fewer workers or a rate limiter) and spreading the run out",
+        "Warns that retrying invoice creation can create duplicates, and recommends idempotency keys or checking before retrying"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-04",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "Our customers in Sydney say their invoices show yesterday's date. We create the invoices in the morning, Sydney time. Our Ledgerly account timezone is set to UTC.",
+      "rubric": [
+        "Identifies the cause: dates are computed in the account timezone (UTC), which is still the previous day during the Sydney morning",
+        "Gives the fix: set the account timezone to Australia/Sydney, or pass explicit dates with a timezone if using the API",
+        "Mentions checking how existing or scheduled invoices are affected before changing the setting"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-05",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "Password reset email never arrives.",
+      "rubric": [
+        "Suggests checking spam and junk folders, and company email filters or quarantine",
+        "Suggests confirming the address on the account is the one being checked",
+        "Suggests waiting a few minutes, then requesting a new reset email once",
+        "Suggests allowing the sender address, and contacting support if it still fails",
+        "Does not invent product-specific causes it cannot know"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "notes": "Short ticket with no hard signals: routed config should step this down to the mid tier.",
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-06",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "Our card reader declines every contactless (tap) payment with \"Card not supported\", but the same cards work fine with chip and PIN. It started after we unboxed a second reader. The first reader still accepts tap payments.",
+      "rubric": [
+        "Notes that the fault is specific to the new reader, since the first reader accepts the same cards by tap",
+        "Suggests checking and updating the new reader's firmware, and checking its contactless setting",
+        "Suggests testing with several cards and a phone wallet to confirm",
+        "Says that if it persists, the reader may be faulty and should be replaced"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-07",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "Every time our QuickBooks sync runs, it creates duplicate customers. For example, \"Bright Path Ltd\" and \"Bright Path Ltd \" (with a trailing space) both appear in QuickBooks. Several of our customers have no email address on file in Ledgerly.",
+      "rubric": [
+        "Identifies the likely cause: matching fails on small name differences (trailing spaces, case) when there is no email to match on",
+        "Suggests cleaning names and adding emails or a stable identifier in Ledgerly before the next sync",
+        "Suggests merging the existing duplicates in QuickBooks and testing the sync on a small set first",
+        "Warns to back up or export data before merging records"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-08",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "high",
+      "input": "URGENT: Since this morning our dashboard shows \"Payments paused\" and every card payment fails with \"account_restricted\". Last week we had an unusual number of refunds and two chargebacks. We are a restaurant and can't take payments at dinner tonight.",
+      "rubric": [
+        "Identifies the likely cause: the account was restricted by a risk review triggered by the spike in refunds and chargebacks",
+        "Gives immediate steps: check email and dashboard notifications for a request from the risk team, provide what it asks for, and contact support urgently",
+        "Suggests a temporary way to take payments tonight that does not break rules (for example cash, or an existing alternative method)",
+        "Warns not to open a new account to get around the restriction"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-09",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "normal",
+      "input": "Our September revenue report says $48,912 in paid invoices, but our September payouts add up to $48,500. Our accountant wants to know where the $412 went.",
+      "rubric": [
+        "Lists likely causes: processing fees deducted from payouts, refunds or chargebacks, and timing (payments late in September paid out in October)",
+        "Mentions that reports by invoice date and payouts by payout date cover different periods",
+        "Gives a way to confirm: export payments and payouts for September and reconcile fees, refunds and timing line by line"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "troubleshoot-10",
+      "class": "complex",
+      "task_type": "troubleshoot",
+      "priority": "high",
+      "input": "Since our IT team rotated the Okta signing certificate this morning, nobody can log in to Ledgerly. Every SSO attempt fails with \"SAML response signature invalid\". SSO is enforced for all 40 users, including both admins. We have payroll invoices due tomorrow.",
+      "rubric": [
+        "Identifies the cause: Ledgerly still has the old Okta certificate, so it rejects responses signed with the new one",
+        "Gives the fix: upload the new certificate or metadata in Ledgerly's SSO settings",
+        "Addresses the lockout: since all admins are locked out, use a break-glass or password login if one exists, or contact support to update the certificate",
+        "Warns against disabling SSO enforcement without a recovery path, or anything that weakens security"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "policy-01",
+      "class": "complex",
+      "task_type": "draft_reply",
+      "priority": "high",
+      "input": "Customer: We bought the annual plan 45 days ago and it's not working for us. I want a full refund. This is ridiculous.\n\nKnowledge base excerpt: Annual plans can be refunded in full within 30 days of purchase. After 30 days annual plans are not refundable, but customers can turn off auto-renewal. Exceptions require manager approval.",
+      "rubric": [
+        "Does not promise a refund; explains annual plans are refundable within 30 days and this purchase was 45 days ago",
+        "Offers to turn off auto-renewal",
+        "May offer to ask a manager about an exception, without promising the outcome",
+        "Empathetic and professional, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "policy-02",
+      "class": "complex",
+      "task_type": "draft_reply",
+      "priority": "high",
+      "input": "Customer: I cancelled my subscription on September 28 and got a confirmation email. On October 2 you charged me $49 for renewal anyway. I want my money back.\n\nKnowledge base excerpt: If a subscription renews after a confirmed cancellation, refund the renewal in full and confirm the cancellation to the customer. Refunds take 5 to 10 business days to reach the card.",
+      "rubric": [
+        "Apologizes and confirms the full $49 renewal refund",
+        "Confirms the subscription is cancelled",
+        "Says the refund takes 5 to 10 business days to reach the card",
+        "Offers nothing beyond the policy (no extra credits or discounts), and invents nothing"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "policy-03",
+      "class": "complex",
+      "task_type": "draft_reply",
+      "priority": "high",
+      "input": "Customer: One of our clients filed a chargeback for an invoice they clearly received and used. Can you just reverse it? This is fraud.\n\nKnowledge base excerpt: Chargebacks are decided by the card issuer. Ledgerly cannot reverse a chargeback. Merchants can submit evidence within 7 days of the dispute notice under Payments > Disputes.",
+      "rubric": [
+        "Explains Ledgerly cannot reverse a chargeback because the card issuer decides",
+        "Says evidence can be submitted under Payments > Disputes within 7 days of the dispute notice",
+        "Does not promise the outcome; may suggest relevant evidence such as the invoice and proof of delivery",
+        "Professional and empathetic, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "policy-04",
+      "class": "complex",
+      "task_type": "draft_reply",
+      "priority": "high",
+      "input": "Customer: Someone logged into our account from another country last night and changed our payout bank account. Please change it back to our real account, ending 7712, right now.\n\nKnowledge base excerpt: If a customer reports unauthorized access: advise them to reset their password and turn on two-factor authentication immediately, pause payouts under Settings > Payouts > Pause, and escalate to the security team. Do not change bank details back over email.",
+      "rubric": [
+        "Tells them to reset the password and turn on two-factor authentication immediately",
+        "Tells them to pause payouts under Settings > Payouts > Pause",
+        "Says the case is being escalated to the security team",
+        "Does not change the bank details over email, and explains why"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    },
+    {
+      "id": "policy-05",
+      "class": "complex",
+      "task_type": "draft_reply",
+      "priority": "high",
+      "input": "Customer: The owner of our Ledgerly account left the company last month and isn't responding. I'm the finance manager. Please make me the owner.\n\nKnowledge base excerpt: Ownership transfer requires a request from the current owner. If the owner is unavailable, send a signed letter on company letterhead from a company officer, plus a copy of that officer's ID. Support cannot transfer ownership based on email alone.",
+      "rubric": [
+        "Explains ownership cannot be transferred based on this email alone",
+        "Gives both paths: a request from the current owner, or a signed letter on company letterhead from a company officer plus a copy of their ID",
+        "Polite and helpful, and invents nothing beyond the excerpt"
+      ],
+      "max_cost_usd": 0.25,
+      "latency_target_ms": 90000,
+      "reviewed": false
+    }
+  ]
+}
