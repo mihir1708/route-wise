@@ -199,6 +199,36 @@ from a fallback bug that has since been fixed: an empty answer from the mid tier
 primary, then a fallback answer cut off at the token cap. The outcome section of
 `experiment/preregistration.md` has the details.
 
+## Load test: `npm run load-test`
+
+`scripts/load-test.mjs` measures the Postgres side of a gateway request with
+pgbench. One transaction is the database work of one `/api/generate` call with
+the cache off, as separate round trips: take the rate limit, read the tenant and
+global budgets, settle the cost, return unused tokens, and write request and
+attempt telemetry. It needs `psql` and `pgbench` and a disposable server, the same
+opt-in as `npm run test:postgres`. It creates its own database, checks that every
+request was charged, counted and logged exactly once, then drops it.
+
+```sh
+ROUTEWISE_DB_TEST_DISPOSABLE=1 ROUTEWISE_TEST_DATABASE_URL=postgresql://... npm run load-test -- --clients 32 --seconds 20
+```
+
+Results from a 4-core machine running Postgres 16 and pgbench together
+(`load-test/results/`), 32 concurrent clients, 20 s per scenario:
+
+| Scenario | Tenants | Requests/s | p50 | p95 | p99 |
+| --- | --- | --- | --- | --- | --- |
+| one tenant | 1 | 468 | 58 ms | 158 ms | 219 ms |
+| many tenants | 64 | 615 | 45 ms | 115 ms | 160 ms |
+| many tenants, no global row (diagnostic) | 64 | 1,423 | 22 ms | 32 ms | 39 ms |
+
+No request was lost or double-counted, and 397,062 attempts against a
+100-per-minute limit admitted exactly 100. The bottleneck is the global month and
+model rows that every request updates when it settles: skipping them (the
+diagnostic row, not a real gateway path) more than doubles throughput and cuts p95
+from 115 ms to 32 ms. These numbers leave out HTTP, the Supabase API and provider
+calls, which take far longer than the database work.
+
 ## Database setup and migrations
 
 For a **fresh, empty** Supabase project, execute `supabase-schema.sql` in the SQL
