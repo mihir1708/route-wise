@@ -35,6 +35,8 @@ const concurrency = positive('--concurrency', 4);
 const limit = values['--limit'] === undefined ? null : positive('--limit', 1);
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
+/** Uncommitted changes outside experiment/results, so earlier runs' output never blocks the next run. */
+const dirtyTree = () => git('status', '--porcelain', '--', '.', ':(exclude)experiment/results');
 function git(...cmd: string[]): string | null {
   try { return execFileSync('git', cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; }
 }
@@ -95,7 +97,7 @@ async function main() {
   if (!smoke) {
     if (unreviewed.length) blockers.push(`${unreviewed.length} items are not reviewed`);
     blockers.push(...prereg.problems.map(p => `pre-registration: ${p}`));
-    if (git('status', '--porcelain')) blockers.push('the working tree has uncommitted changes; results must point at a commit');
+    if (dirtyTree()) blockers.push('the working tree has uncommitted changes; results must point at a commit');
   }
   if (blockers.length) throw new Error(`Live run refused:\n- ${blockers.join('\n- ')}`);
   if (!process.env.ANTHROPIC_API_KEY) console.warn('Warning: ANTHROPIC_API_KEY is not set, so fallbacks to Anthropic models will fail.');
@@ -123,7 +125,7 @@ async function main() {
   const commit = git('rev-parse', 'HEAD');
   const meta = {
     mode: smoke ? 'smoke' : 'preregistered', completed: !stopped, started_at: startedAt.toISOString(), finished_at: new Date().toISOString(),
-    commit, dirty: Boolean(git('status', '--porcelain')), benchmark_version: full.version, benchmark_sha256: hash,
+    commit, dirty: Boolean(dirtyTree()), benchmark_version: full.version, benchmark_sha256: hash,
     items: benchmark.items.length, runs, concurrency, spend_limit_usd: spendLimit, pinned, approved_by: prereg.approvedBy,
   };
   const title = smoke ? `RouteWise routing experiment: smoke run (${benchmark.items.length} items)`
