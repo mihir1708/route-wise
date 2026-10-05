@@ -15,11 +15,11 @@ const clone = () => JSON.parse(RAW.toString('utf8')) as Benchmark;
 const item = (b: Benchmark, id: string) => b.items.find(i => i.id === id)!;
 
 describe('benchmark', () => {
-  it('ships 45 valid items, 15 per class, none reviewed yet', () => {
+  it('ships 45 valid items, 15 per class, all reviewed', () => {
     const b = shipped();
     expect(b.version).toBe('support-v1');
     expect(b.items).toHaveLength(45);
-    expect(b.items.filter(i => i.reviewed)).toHaveLength(0);
+    expect(b.items.every(i => i.reviewed && i.reviewer && i.reviewed_at)).toBe(true);
     expect(new Set(b.items.map(i => i.task_type))).toEqual(new Set(['classify', 'extract', 'summarize', 'draft_reply', 'troubleshoot']));
   });
 
@@ -30,7 +30,7 @@ describe('benchmark', () => {
     ['a value outside the enum', (b: Benchmark) => { item(b, 'classify-01').expected!.category = 'refunds'; }, /not an allowed value/],
     ['a rubric on a structured item', (b: Benchmark) => { item(b, 'extract-01').rubric = ['x']; }, /exact match, not a rubric/],
     ['a text item without a rubric', (b: Benchmark) => { item(b, 'summarize-01').rubric = []; }, /rubric required/],
-    ['a review without a reviewer', (b: Benchmark) => { item(b, 'draft-01').reviewed = true; }, /needs reviewer and reviewed_at/],
+    ['a review without a reviewer', (b: Benchmark) => { delete item(b, 'draft-01').reviewer; }, /needs reviewer and reviewed_at/],
     ['a cost limit out of range', (b: Benchmark) => { item(b, 'policy-01').max_cost_usd = 0; }, /invalid max_cost_usd/],
     ['a chat item', (b: Benchmark) => { (item(b, 'summarize-02') as { task_type: string }).task_type = 'chat'; }, /invalid task type/],
   ])('rejects %s', (_, mutate, error) => {
@@ -38,8 +38,8 @@ describe('benchmark', () => {
     expect(() => validateBenchmark(b)).toThrow(error);
   });
 
-  it('accepts a reviewed item with reviewer and date', () => {
-    const b = clone(); Object.assign(item(b, 'draft-01'), { reviewed: true, reviewer: 'Mihir', reviewed_at: '2026-10-06' });
+  it('accepts an unreviewed item without reviewer or date', () => {
+    const b = clone(); const d = item(b, 'draft-01'); d.reviewed = false; delete d.reviewer; delete d.reviewed_at;
     expect(() => validateBenchmark(b)).not.toThrow();
   });
 
