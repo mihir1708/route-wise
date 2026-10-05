@@ -110,3 +110,20 @@ totals as before. Read per-model totals from the new `model_usage_totals` view.
 recorded before the migration stays on the month row and is still counted.
 `npm run test:postgres` covers concurrent increments across shards, the reset and
 the new privileges, and `npm run load-test` measures the effect.
+
+## 012: dashboard aggregates
+
+Adds `gateway_dashboard(p_start, p_end, p_tenant)`, which returns everything the
+admin dashboard charts as one JSON object: request, success, cache, fallback,
+escalation and rate-limit counts; spend; p50/p95 latency overall and per tier;
+a zero-filled daily series by tier; model counts; the tenant list for the filter;
+and the 25 most recent requests (no hashes or text). Only `service_role` can run
+it. `npm run test:postgres` checks its numbers against fixed fixture rows.
+
+## 013: remove the verification queue
+
+The async verification worker was removed from the app. This migration redefines
+`maintain_retention()` without the job queue, then drops `claim_verification_job`,
+`verification_jobs` and the old `request_stats` query that 012 replaced. Any
+queued jobs are deleted with the table; they held at most 24 hours of consented
+question and answer text.

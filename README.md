@@ -1,13 +1,104 @@
-# RouteWise V2
+# RouteWise
 
-RouteWise explores the quality/cost tradeoff of routing requests between LLM
-tiers. It retains a small Next.js Pages Router app, OpenAI integration and
-Supabase/PostgreSQL. It now includes atomic accounting, protected APIs, explicit
-request outcomes, versioned routing and offline evaluation tooling.
+RouteWise is an LLM gateway for customer-support workloads. Each request names a
+task (classify, extract, summarize, draft a reply, troubleshoot, or chat), and the
+gateway sends it to the cheapest model tier likely to handle it. Behind that one
+endpoint it retries and falls back across OpenAI and Anthropic, validates
+structured output and escalates when it fails, caches answers, enforces
+per-tenant budgets and rate limits in Postgres, and records every request and
+provider attempt. A pre-registered experiment measures whether the routing keeps
+quality, and a load test measures the database path.
 
-**No live benchmark has been run for this implementation. No quality parity,
-cost reduction, routing accuracy, or human-reviewed dataset count is claimed.**
-The starter dataset contains 12 generated, unreviewed cases.
+- **Demo:** the home page runs any task as a `demo` tenant with a $1 monthly
+  budget and shows how the request was routed, what it cost and why.
+- **Dashboard:** `/admin` charts traffic by tier, latency percentiles, cost per
+  successful request, and cache, fallback, escalation and rate-limit rates, for
+  all tenants or one.
+- **API:** `POST /api/generate` with a tenant key; see below.
+
+## Results
+
+Both are measured; neither is projected.
+
+**Routing experiment (2026-10-05).** 45 support tickets, 2 runs each, under three
+configs, judged against a bar fixed before the run
+([details](#routing-experiment-npm-run-experiment)):
+
+| Config | Success | Cost per success |
+| --- | --- | --- |
+| all-premium (high tier only) | 84.4% | $0.0132 |
+| routed (rules-v1) | 81.1% | $0.0071 |
+| all-small (low tier only) | 81.1% | $0.0004 |
+
+Routing **did not meet** the pre-registered bar: it matched or beat all-premium on
+simple and standard tickets but lost 20 points on complex ones, so no savings
+claim is made. Seven of its 15 complex failures traced to a fallback bug that has
+since been fixed; the pre-registration rules out re-running the same tickets to
+get a better number.
+
+**Load test.** On a 4-core machine, the gateway's Postgres path handled 1,369
+requests/s at p95 32 ms across 64 tenants, after sharding a global spend row that
+had capped it at 615 requests/s and p95 115 ms. Every charge and rate limit stayed
+exact ([details](#load-test-npm-run-load-test)).
+
+## How a request flows
+
+```mermaid
+flowchart LR
+  C[Client or demo page] --> G["/api/generate"]
+  G --> V[Validate and pick prompt version]
+  V --> RL[(Rate limit<br/>Postgres)]
+  RL --> CA[(Response cache)]
+  CA -- hit --> T
+  CA -- miss --> AD[(Tenant and global<br/>budget check)]
+  AD --> RO[Route: task, difficulty,<br/>priority, budget, limits]
+  RO --> P[Primary model in tier]
+  P -- error or empty --> F[Fallback provider<br/>same tier]
+  P --> OV{Valid output?}
+  F --> OV
+  OV -- no --> E[Escalate one tier]
+  E --> OV
+  OV -- yes --> S[(Settle cost:<br/>tenant + sharded global)]
+  S --> T[(Telemetry:<br/>run + attempts)]
+  T --> R[Response with routing trace]
+```
+
+Each stage is in `lib/request-run.ts` and records how long it took. Postgres does
+the parts that must hold across server instances: rate limits, budgets, spend
+and the cache. Provider calls, retries and the circuit breaker run in the
+Next.js server.
+
+## Build vs. buy
+
+For a team that just needs a gateway, I would start with an existing one.
+[LiteLLM](https://github.com/BerriAI/litellm) is an open-source proxy and SDK
+that puts many providers behind an OpenAI-style API, with fallbacks, load
+balancing, per-key budgets and spend tracking.
+[Portkey](https://github.com/Portkey-AI/gateway) is a gateway with retries,
+fallbacks, conditional routing, caching and request logs, open source with a
+hosted platform on top. Both cover more providers and features than RouteWise.
+
+RouteWise was built to understand and measure the parts those tools leave to
+their users:
+
+- **Which tier a request needs.** Both let you write routing rules. RouteWise's
+  rules are task-aware, explained per request in `route_reasons`, and tested by a
+  pre-registered experiment that could fail, and did.
+- **Exact money under concurrency.** Budgets, rate limits and spend are Postgres
+  transactions, load-tested with checks that nothing was lost or double-counted.
+- **What a failure costs.** Every provider attempt, including empty or refused
+  answers the provider still billed, is recorded and charged.
+
+## Out of scope
+
+- **Streaming.** Answers return whole; streaming would complicate output
+  validation and exact charging.
+- **Semantic caching.** The cache matches exact inputs only, so a hit is always a
+  correct answer to the same question.
+- **A learned router.** Rules-v1 only. The experiment shows where the rules fall
+  short (complex tickets), which is the evidence a learned router would need.
+- **User accounts.** Tenants use API keys; the dashboard uses one admin password.
+- **More providers.** OpenAI and Anthropic, one primary and one fallback per tier.
 
 ## Running locally
 
@@ -28,6 +119,10 @@ Set OpenAI/Supabase server credentials in `.env.local`. Set separate random
 `ROUTEWISE_ADMIN_PASSWORD` and `ROUTEWISE_DEMO_PASSWORD` values of at least 32
 characters. The browser uses HTTP Basic authentication: username `admin` or
 `demo`. Admin can query and inspect statistics; demo cannot access admin APIs.
+`ROUTEWISE_PUBLIC_DEMO=1` opens the demo page to visitors without the demo
+password, at 5 requests a minute per visitor on each server instance. The demo
+tenant's budget and rate limits, enforced in Postgres, cap what all visitors
+together can spend; the admin pages still need the admin password.
 There is no default credential or development bypass. Use HTTPS outside localhost.
 Keep `APP_ORIGIN` equal to the deployed browser origin (no trailing slash).
 
@@ -143,7 +238,8 @@ Successful answers are cached per tenant for `ROUTEWISE_CACHE_TTL_S` seconds
 version and the exact input. A hit skips budget, routing and the provider, costs
 nothing and refunds the token reservation; it still counts against the request
 rate limit. The cache stores the answer text but never the input. Priority `high`,
-`"cache": false` and the chat UI always get a fresh answer. Expired entries are
+and `"cache": false` always get a fresh answer. The demo page uses the cache, so
+repeated sample tickets cost nothing. Expired entries are
 deleted by `maintain_retention()`.
 
 ### Telemetry
@@ -154,8 +250,11 @@ and one `request_attempts` row per provider call: model, provider, outcome,
 error kind, HTTP status, latency, tokens and cost. Neither holds prompt or answer
 text.
 
-The chat UI (`/api/route-query`) is a thin wrapper that runs `chat` tasks as the
-built-in `demo` tenant, which migration 009 creates with a $1 monthly budget.
+The demo page's endpoint (`/api/route-query`) runs any task as the built-in
+`demo` tenant, which migration 009 creates with a $1 monthly budget and 10
+requests a minute, and returns the same body as `/api/generate`. The admin
+dashboard reads `gateway_dashboard` (migration 012), which computes counts,
+rates and p50/p95 latency in Postgres for a window of whole UTC days.
 
 ## Routing experiment: `npm run experiment`
 
@@ -251,11 +350,13 @@ to run once; there is no automatic migration ledger.
 4. 004: telemetry versions, tiers and database access restrictions.
 5. 005: normalized future model/tier accounting.
 6. 006: routing decision reasons.
-7. 007: consent-based verification jobs and atomic worker claim.
-8. 008: bounded analytics and retention maintenance.
+7. 007: verification jobs (removed by 013).
+8. 008: analytics query (replaced by 012) and retention maintenance.
 9. 009: tenants, per-tenant budgets and Postgres rate limits.
 10. 010: provider attempts, request flags and stage timings, response cache.
 11. 011: global spend spread over shard rows so concurrent requests stop queuing on one row.
+12. 012: `gateway_dashboard`, the admin dashboard's aggregates and latency percentiles.
+13. 013: drops the verification queue and the old stats query.
 
 Apply migrations before deploying code, preferably with traffic paused because
 005 changes an RPC signature. Existing monthly balances and budget limits are
@@ -300,13 +401,13 @@ The legacy reset endpoint is protected but retains its known upsert semantics;
 its dashboard button was removed. Resetting counters never reverses provider
 charges or deletes telemetry.
 
-## Model registry and routing policies
+## Legacy registry and evaluation policies
 
-`lib/model-registry.ts` is the source of IDs, tiers, provider, prices, generation
-settings and pricing version. Legacy defaults remain GPT-3.5 Turbo ($1.50/$2 per
-million input/output tokens) and GPT-4 ($30/$60); these are project baseline
-values, **not verified current prices or model availability**. Only OpenAI is
-implemented. No fictional mid-tier model is supplied.
+The gateway's models are listed under [Models and tiers](#models-and-tiers).
+`lib/model-registry.ts` also keeps the V1 registry, GPT-3.5 Turbo ($1.50/$2 per
+million input/output tokens) and GPT-4 ($30/$60), for historical records and the
+older `npm run eval` tooling described below; those prices are the project's
+original baseline values, not current ones.
 
 To configure current runtime IDs, set `ROUTEWISE_MODELS_JSON` to an array of
 complete ModelConfig objects, each with `id`, `provider: "openai"`, `tier`,
@@ -327,8 +428,7 @@ reasoning features and emits explanations. Activation requires paired measured
 failure evidence, explicit versioned weights/thresholds and a rationale. No tuned
 configuration is shipped because no measured v1 failures exist yet. Production
 uses v1. `--v2-config` and `--evidence-run` let the evaluator compare a future
-configured v2. There is no claim that v2 is better. Learned-router interfaces
-exist, but training is deferred until sufficient reviewed labels are available.
+configured v2. There is no claim that v2 is better.
 
 ## Evaluation dataset and scoring
 
@@ -430,32 +530,15 @@ Comparison reports paired count, per-case absolute disagreement, mean absolute
 disagreement and the fraction within 0.1. Empty reviews are never interpreted as
 zero. Do not promote model-judge scores to human labels.
 
-## Async verification and retention
-
-Verification is disabled by default. Enabling `ROUTEWISE_VERIFICATION_ENABLED=1`
-and a sample rate (default target 0.15) still requires request `verify_consent=true`.
-The query page offers an explicit opt-in checkbox. A durable verification_jobs
-row stores prompt/answer with a 24-hour expiry. The response waits only for the
-small database enqueue; it does not wait for a model verification result.
+## Retention
 
 ```sh
-ROUTEWISE_VERIFICATION_WORKER=1 node --env-file=.env.local --import tsx scripts/verification-worker.ts
 ROUTEWISE_MAINTENANCE=1 node --env-file=.env.local --import tsx scripts/maintenance.ts
 ```
 
-The worker also requires verification enabled and an explicit
-`ROUTEWISE_VERIFICATION_MIN_SCORE` (0..1). It processes one job per invocation,
-with an enabled high-tier verifier, atomic SKIP LOCKED claim and no automatic
-retry after uncertain outcomes. Schedule repeated invocations with your existing
-cron/host scheduler; no Redis, Kafka or unreliable fire-and-forget is used.
-Verifier costs are included in monthly accounting. Scores are automated opinions;
-quality_gap remains null without a second comparable score.
-
-Schedule maintenance frequently (e.g. every five minutes) to clear expired or
-interrupted jobs and delete telemetry after 30 days. Payload expiry is 24 hours;
-physical deletion happens at the next successful maintenance run, not exactly at
-the expiry instant. A crashed claimed job is marked failed after 15 minutes; do
-not blindly replay paid calls. Jobs and telemetry have RLS/server-only grants.
+Schedule maintenance daily or more often. It deletes telemetry after 30 days,
+rate-limit windows after a day and expired cache entries. Telemetry tables have
+RLS and server-only grants.
 
 Normal request_runs stores **no raw query or response**. SHA-256 query hashes are
 pseudonymous and susceptible to dictionary matching, not anonymization. Legacy
@@ -497,9 +580,10 @@ tolerance is shipped. Ordinary CI asserts only explicit software expectations.
 
 ## Security, tradeoffs and limitations
 
-- Shared demo/admin access is minimal; there are no individual users or per-user budgets.
-- Rate limits are bounded per-process buckets (demo 10/min, admin 60/min, attempts
-  120/min), not distributed throttling. Instances/restarts reset them. API query
+- Shared demo/admin access is minimal; there are no individual users. Tenant
+  budgets and rate limits are enforced in Postgres.
+- Access limits are bounded per-process buckets (demo 10/min, public-demo visitor
+  5/min, admin 60/min, attempts 120/min), not distributed throttling. Instances/restarts reset them. API query
   bodies are limited to 20KB and queries to 16K characters. POST origin checks
   reject cross-site requests; same-origin CLI requests may omit Origin.
 - Provider call timeout is 60 seconds and SDK retries are disabled. Client retries
@@ -508,13 +592,12 @@ tolerance is shipped. Ordinary CI asserts only explicit software expectations.
   cannot be recovered. Sub-micro-dollar values still round at six decimal places.
 - JavaScript uses binary floating point; exact decimal/integer-unit arithmetic
   is not introduced. Costs are estimates from versioned configured prices.
-- Telemetry/worker persistence failures and unknown provider outcomes still need
+- Telemetry persistence failures and unknown provider outcomes still need
   operator reconciliation. No external alert delivery is installed.
-- Deployment must apply migrations and schedule cleanup/worker commands. No
-  production Supabase migration or live benchmark was executed by this work.
+- Deployment must apply migrations and schedule the maintenance command.
 - Current model availability/pricing must be checked by the operator. Broad
   dependency upgrades were intentionally avoided; installation reported existing
   security audit findings. T01's stale Browserslist warning remains.
 
-See `docs/DECISIONS.md` for architecture decisions and `docs/IMPLEMENTATION.md`
-for the phase record, preserved baselines, verification results and deferred work.
+`docs/` holds the earlier V2 engineering records: architecture decisions in
+`docs/DECISIONS.md` and the phase record in `docs/IMPLEMENTATION.md`.
