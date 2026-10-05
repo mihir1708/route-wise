@@ -68,6 +68,8 @@ export interface ModelResponse {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+  /** The provider stopped at the output cap. */
+  truncated?: boolean;
 }
 
 // Admin data is production telemetry only, for one UTC calendar month.
