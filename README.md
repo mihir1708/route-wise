@@ -155,6 +155,41 @@ text.
 The chat UI (`/api/route-query`) is a thin wrapper that runs `chat` tasks as the
 built-in `demo` tenant, which migration 009 creates with a $1 monthly budget.
 
+## Routing experiment: `npm run experiment`
+
+The experiment asks whether rules-v1 routing keeps quality while cutting cost. It
+sends the same 45 support tickets (`experiment/benchmark-v1.json`, 15 each of
+simple, standard and complex) through the real gateway code under three configs:
+
+| Config | Allowed tiers |
+| --- | --- |
+| all-premium | high only |
+| routed | low, mid and high; rules-v1 decides |
+| all-small | low only |
+
+Every config sends the same request body; only the tenant's allowed tiers differ,
+so retries, fallback, validation and escalation behave as in production. An item
+succeeds when the gateway answers, the answer is right (exact field match for
+classify and extract, a rubric judge score of at least 4/5 otherwise) and it stays
+within the item's cost and latency limits. Failures count; nothing is dropped.
+
+```sh
+npm run experiment                      # dry run: routing plan, cost estimate, readiness; no calls
+node --env-file=.env.local --import tsx scripts/experiment.ts --live            # the pre-registered run
+node --env-file=.env.local --import tsx scripts/experiment.ts --live --limit 1  # smoke run, 3 items per config
+```
+
+`experiment/preregistration.md` fixes the question, success rule, judge and bar
+before any live call: routed success may be at most 3 points below all-premium
+overall and at most one ticket-run below in each class. It also pins the dataset hash, prompt versions, routing
+policy, models and pricing. A full live run refuses to start unless every item is
+reviewed, the pinned values match the code, someone has approved the
+pre-registration and the working tree is committed. Savings are reported only
+when routed meets the bar on the full approved run. Live runs never run in CI,
+always ask for a typed `yes` (or `--yes`), and stop at a hard spend limit
+(`--budget`, defaulting to the dry run's upper bound). Results go to
+`experiment/results/` as JSON and a Markdown table.
+
 ## Database setup and migrations
 
 For a **fresh, empty** Supabase project, execute `supabase-schema.sql` in the SQL
@@ -390,6 +425,7 @@ npm run typecheck
 npm run lint
 npm run migrations:check
 npm run eval:regression
+npm run experiment
 npm run build
 git diff --check
 ```

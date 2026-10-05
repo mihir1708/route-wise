@@ -91,6 +91,10 @@ export function estimateInputTokens(...texts: string[]): number {
   return texts.reduce((sum, t) => sum + Math.ceil(t.length / 4) + 4, 0);
 }
 
+/** Worst-case USD for one call on a tier: full billable output on the priciest of its primary and fallbacks. */
+export function tierWorstCase(tier: ModelTier, models: readonly ModelConfig[], inputTokens: number, outputCap: number): number {
+  return Math.max(0, ...tierCandidates(tier, models).map(m => modelCost(m, inputTokens, billableOutputCap(m, outputCap))));
+}
 
 export interface RateLimitResult { allowed: boolean; window_start: string; reason?: string; retry_after_s?: number }
 export interface Admission { tenantSpent: number; tenantBudget: number; globalSpent: number; globalLimit: number }
@@ -187,8 +191,7 @@ export async function executeGenerate(
     const user = request.prompt.render(request.input);
     const inputTokens = estimateInputTokens(request.prompt.system, user);
     const outputCap = request.prompt.maxOutputTokens;
-    const worstCase = (tier: ModelTier) => Math.max(0, ...tierCandidates(tier, deps.models)
-      .map(m => modelCost(m, inputTokens, billableOutputCap(m, outputCap))));
+    const worstCase = (tier: ModelTier) => tierWorstCase(tier, deps.models, inputTokens, outputCap);
     const enabled = deps.models.filter(m => m.enabled);
     const reserved = inputTokens + Math.max(outputCap, ...enabled.map(m => billableOutputCap(m, outputCap)));
 
