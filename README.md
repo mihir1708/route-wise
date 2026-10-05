@@ -180,8 +180,8 @@ node --env-file=.env.local --import tsx scripts/experiment.ts --live --limit 1  
 ```
 
 `experiment/preregistration.md` fixes the question, success rule, judge and bar
-before any live call: routed success may be at most 3 points below all-premium,
-overall and in each class. It also pins the dataset hash, prompt versions, routing
+before any live call: routed success may be at most 3 points below all-premium
+overall and at most one ticket-run below in each class. It also pins the dataset hash, prompt versions, routing
 policy, models and pricing. A full live run refuses to start unless every item is
 reviewed, the pinned values match the code, someone has approved the
 pre-registration and the working tree is committed. Savings are reported only
