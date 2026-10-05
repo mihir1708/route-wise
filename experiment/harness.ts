@@ -197,16 +197,17 @@ export function makeJudge(
   return async (item, answer) => {
     let cost = 0; let model: string | null = null;
     for (let tryNo = 0; tryNo < 2; tryNo++) {
+      const attempts: Attempt[] = [];
+      let verdict: ReturnType<typeof parseJudge> = null;
       try {
         const { response, model: used } = await callWithFallback([...judgeModels], judgeRequest(item, answer),
-          { system: JUDGE_SYSTEM, maxOutputTokens: JUDGE_MAX_OUTPUT_TOKENS }, { call, breaker, sleep, retryPolicy: DEFAULT_RETRY_POLICY }, []);
+          { system: JUDGE_SYSTEM, maxOutputTokens: JUDGE_MAX_OUTPUT_TOKENS }, { call, breaker, sleep, retryPolicy: DEFAULT_RETRY_POLICY }, attempts);
         model = used.id;
-        if (Number.isSafeInteger(response.prompt_tokens) && Number.isSafeInteger(response.completion_tokens)) {
-          cost += modelCost(used, response.prompt_tokens, response.completion_tokens);
-        }
-        const verdict = parseJudge(response.content);
-        if (verdict) return { ...verdict, cost_usd: cost, model };
+        verdict = parseJudge(response.content);
       } catch { /* provider failure: try once more, then record no score */ }
+      // Every billed attempt counts, including empty or refused answers.
+      cost += attempts.reduce((sum, a) => sum + (a.cost_usd ?? 0), 0);
+      if (verdict) return { ...verdict, cost_usd: cost, model };
     }
     return { score: null, reason: 'judge_failed', cost_usd: cost, model };
   };

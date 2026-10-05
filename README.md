@@ -61,8 +61,10 @@ curl -X POST https://<host>/api/generate \
 Unknown fields are rejected. A success returns `answer` (and `output`, the parsed
 JSON, for `classify` and `extract`) plus `metadata` with the model, tier,
 provider, prompt version, route reasons, tokens, `cost_usd`, `latency_ms`,
-`cache_hit`, `fallback_used`, `escalated`, the number of provider attempts and the
-tenant's remaining budget. Errors return `{error, request_id}`: 400/413 invalid
+`cache_hit`, `fallback_used`, `escalated`, `truncated` (the answer stopped at the
+output cap), the number of provider attempts and the tenant's remaining budget.
+Tokens a provider bills for a failed call, such as an empty or refused answer, are
+charged like an answer. Errors return `{error, request_id}`: 400/413 invalid
 input, 401 bad key, 402 tenant budget or `max_cost_usd`, 429 rate limit (with
 `Retry-After`), 502 when every provider failed (`all_providers_failed`) or the
 answer never matched its schema (`invalid_model_output`), 503 global budget or a
@@ -189,6 +191,13 @@ when routed meets the bar on the full approved run. Live runs never run in CI,
 always ask for a typed `yes` (or `--yes`), and stop at a hard spend limit
 (`--budget`, defaulting to the dry run's upper bound). Results go to
 `experiment/results/` as JSON and a Markdown table.
+
+**Result (2026-10-05):** routed did not meet the bar. It matched or beat
+all-premium on simple and standard tickets but scored 50% on complex tickets
+against 70%, so no savings figure is claimed. Seven of its 15 complex failures came
+from a fallback bug that has since been fixed: an empty answer from the mid tier's
+primary, then a fallback answer cut off at the token cap. The outcome section of
+`experiment/preregistration.md` has the details.
 
 ## Database setup and migrations
 

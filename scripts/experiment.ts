@@ -100,7 +100,7 @@ async function main() {
     if (dirtyTree()) blockers.push('the working tree has uncommitted changes; results must point at a commit');
   }
   if (blockers.length) throw new Error(`Live run refused:\n- ${blockers.join('\n- ')}`);
-  if (!process.env.ANTHROPIC_API_KEY) console.warn('Warning: ANTHROPIC_API_KEY is not set, so fallbacks to Anthropic models will fail.');
+  if (!process.env.ANTHROPIC_API_KEY) console.warn('Warning: ANTHROPIC_API_KEY is not set, so the Claude judge and fallbacks to Anthropic models will fail.');
 
   const spendLimit = positive('--budget', Math.ceil(plan.upper_bound_usd), false);
   const question = `${smoke ? 'Smoke run' : 'Pre-registered run'}: ${benchmark.items.length} items x 3 configs x ${runs} runs, hard stop at ${usd(spendLimit)}. Type "yes" to spend real money: `;
