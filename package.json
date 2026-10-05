@@ -17,7 +17,6 @@
     "eval:report": "node --import tsx scripts/report.ts",
     "eval:failures": "node --import tsx scripts/failures.ts",
     "eval:review": "node --import tsx scripts/human-review.ts",
-    "verification:work": "node --import tsx scripts/verification-worker.ts",
     "eval:compare": "node --import tsx scripts/compare.ts",
     "eval:pareto": "node --import tsx scripts/pareto.ts",
     "maintenance": "node --import tsx scripts/maintenance.ts",
