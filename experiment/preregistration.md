@@ -9,7 +9,7 @@ Does rules-v1 routing keep the success rate within 3 points of sending every req
 ## Pinned values
 
 - Dataset: `support-v1`
-- Dataset SHA-256: `cea7e629f21491856ee592792d577488cc02475735cc8515b5ba9fd5e8620d9b`
+- Dataset SHA-256: `fa31f71b8326d57caf233635e317c35fe30a8687648b265982f792f1e5ed1870`
 - Configs: `all-premium=high; routed=low+mid+high; all-small=low`
 - Prompts: `classify@v2, draft_reply@v1, extract@v2, summarize@v1, troubleshoot@v1`
 - Routing policy: `rules-v1`
@@ -19,19 +19,19 @@ Does rules-v1 routing keep the success rate within 3 points of sending every req
 - Bar: `routed success at most 3 points below all-premium overall, and at most 1 ticket-run below in each class`
 - Runs: `2`
 
-The dataset hash covers the file's exact bytes, including each item's review record, so it is pinned again once the review is recorded and before approval.
+The dataset hash covers the file's exact bytes, including each item's review record. It was pinned after the review was recorded.
 
 ## Dataset
 
 `experiment/benchmark-v1.json`: 45 synthetic support tickets for Ledgerly, a fictional invoicing and payments product. There are 15 items per class.
 
-- **Simple:** 8 classify and 7 extract items, scored by exact match against expected values. Case, surrounding whitespace, repeated spaces and trailing full stops are ignored, and some fields list more than one acceptable value.
+- **Simple:** 8 classify and 7 extract items, scored by exact match against expected values. Case, surrounding whitespace, repeated spaces and trailing full stops are ignored. Each field has exactly one accepted value.
 - **Standard:** 8 summarize items, plus 7 draft_reply items that include knowledge-base excerpts. These are scored by the rubric judge.
 - **Complex:** 10 troubleshoot items and 5 policy or edge-case draft_reply items, scored by the rubric judge.
 
 Eleven items carry a non-normal priority, as real traffic would: 7 high in complex, 1 high in simple, and 3 low in standard. Each item has a cost and latency limit for its class: $0.10 and 30 s for simple, $0.15 and 45 s for standard, $0.25 and 90 s for complex. The limits are generous on purpose, so the all-premium worst case fits and the comparison is about quality rather than limits.
 
-A person reviews every item before the live run, and the reviewer and date are recorded on the item.
+Mihir Mukhi reviewed every item on 2026-10-05, before any live call, and the reviewer and date are recorded on each item. The review set one accepted product name per extract item and rewrote the status criteria of four summaries (summarize-01, -04, -05 and -08).
 
 ## Configs
 

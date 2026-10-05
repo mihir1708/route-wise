@@ -1,6 +1,6 @@
 {
   "version": "support-v1",
-  "description": "Support tickets for Ledgerly, a fictional SaaS invoicing and payments product that also ships card readers. Written for the RouteWise routing experiment; every item needs a human review before a live run.",
+  "description": "Support tickets for Ledgerly, a fictional SaaS invoicing and payments product that also ships card readers. Written for the RouteWise routing experiment; every item was reviewed by a person before any live run.",
   "items": [
     {
       "id": "classify-01",
@@ -14,7 +14,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-02",
@@ -28,7 +30,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-03",
@@ -42,7 +46,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-04",
@@ -56,7 +62,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-05",
@@ -70,7 +78,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-06",
@@ -84,7 +94,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-07",
@@ -98,7 +110,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "classify-08",
@@ -112,7 +126,9 @@
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-01",
@@ -122,16 +138,15 @@
       "input": "Order LDG-48213: the Card Reader Mini arrived with a cracked screen. Please send a new one. You can reach me at maria.gomez@sunsetbakery.com.",
       "expected": {
         "order_id": "LDG-48213",
-        "product": [
-          "Card Reader Mini",
-          "Ledgerly Card Reader Mini"
-        ],
+        "product": "Card Reader Mini",
         "customer_email": "maria.gomez@sunsetbakery.com",
         "requested_action": "replacement"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-02",
@@ -141,16 +156,15 @@
       "input": "Hello, I'd like to cancel our Payroll add-on at the end of this billing cycle. Account email: ops@northwindlabs.co. Thanks, Dev",
       "expected": {
         "order_id": null,
-        "product": [
-          "Payroll add-on",
-          "Payroll"
-        ],
+        "product": "Payroll add-on",
         "customer_email": "ops@northwindlabs.co",
         "requested_action": "cancel"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-03",
@@ -160,17 +174,15 @@
       "input": "We were charged $120 for a Business plan upgrade on invoice INV-2026-0912, but nobody on our team clicked upgrade. Please refund that charge.",
       "expected": {
         "order_id": "INV-2026-0912",
-        "product": [
-          "Business plan",
-          "Business",
-          "Business plan upgrade"
-        ],
+        "product": "Business plan",
         "customer_email": null,
         "requested_action": "refund"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-04",
@@ -180,19 +192,15 @@
       "input": "The API has returned 500 on POST /v1/invoices since 2pm UTC and our checkout is blocked. Contact: dev@kitebox.app",
       "expected": {
         "order_id": null,
-        "product": [
-          "API",
-          "Ledgerly API",
-          "Invoices API",
-          "/v1/invoices",
-          "POST /v1/invoices"
-        ],
+        "product": "API",
         "customer_email": "dev@kitebox.app",
         "requested_action": "technical_fix"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-05",
@@ -202,16 +210,15 @@
       "input": "Quick question before we sign up: does Ledgerly Payments support Apple Pay?",
       "expected": {
         "order_id": null,
-        "product": [
-          "Ledgerly Payments",
-          "Payments"
-        ],
+        "product": "Ledgerly Payments",
         "customer_email": null,
         "requested_action": "question"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-06",
@@ -221,18 +228,15 @@
       "input": "Please update the company address printed on our invoices to 12 Pier Road, Halifax. Sam (sam@harborcoffee.com)",
       "expected": {
         "order_id": null,
-        "product": [
-          null,
-          "invoices",
-          "Invoicing",
-          "Ledgerly Invoicing"
-        ],
+        "product": "Invoicing",
         "customer_email": "sam@harborcoffee.com",
         "requested_action": "update_details"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "extract-07",
@@ -242,17 +246,15 @@
       "input": "My subscription renewed on 2 October even though I cancelled on 28 September. Order ref ORD-77120. Refund please. Priya, priya@lumenstudio.design",
       "expected": {
         "order_id": "ORD-77120",
-        "product": [
-          null,
-          "subscription",
-          "Ledgerly subscription"
-        ],
+        "product": "subscription",
         "customer_email": "priya@lumenstudio.design",
         "requested_action": "refund"
       },
       "max_cost_usd": 0.1,
       "latency_target_ms": 30000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-01",
@@ -263,13 +265,14 @@
       "rubric": [
         "States that a $3,240 payout sent on September 30 has not reached the customer's bank, and the bank sees no incoming transfer",
         "States that the payments team was asked to trace the transfer and no result has come back yet",
-        "Mentions the customer needs the funds for payroll on October 7",
-        "Gives the next action: chase the payments team trace and update the customer before October 7",
+        "Gives the next action: follow up on the payments team trace and update the customer; mentions that the customer needs the funds for payroll on October 7",
         "At most five bullets, and nothing that is not in the thread"
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-02",
@@ -287,7 +290,9 @@
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
       "notes": "Priority low: routed config should step this down to the small tier.",
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-03",
@@ -304,7 +309,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-04",
@@ -315,13 +322,14 @@
       "rubric": [
         "States the customer wants to move from Business to Starter, and that no invoices or customer data will be lost",
         "Explains Starter allows 2 users and they have 5, so they will remove 3 users first",
-        "Mentions the $36 prorated credit on the next invoice",
-        "Gives the status: waiting for the customer to remove users and downgrade; next action is to confirm the downgrade and credit",
+        "Gives the status: the customer plans to remove three users and then downgrade; mentions that the $36 credit will be applied to the next invoice",
         "At most five bullets, and nothing that is not in the thread"
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-05",
@@ -332,13 +340,14 @@
       "rubric": [
         "States the original order SH-20931 was lost by the carrier",
         "States a replacement was sent as SH-21044 with express shipping at no charge",
-        "Mentions the expected delivery of October 8 and the customer's October 10 opening",
-        "Gives the next action: confirm the replacement arrives by October 8",
+        "Gives the current status: replacement shipped by express and expected October 8",
         "At most five bullets, and nothing that is not in the thread"
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-06",
@@ -355,7 +364,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-07",
@@ -372,7 +383,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "summarize-08",
@@ -383,14 +396,15 @@
       "rubric": [
         "States the customer needed all 2025 invoices as PDFs for an auditor",
         "Explains bulk export is not on their Starter plan, so support generated a ZIP of 412 invoices manually",
-        "Mentions the download link expires after 7 days",
-        "Gives the status: link sent, customer has not yet confirmed the download; next action is to confirm they got it",
+        "Gives the status: the ZIP link was sent and the customer plans to download it; mentions that the link expires after 7 days",
         "Leaves out the small talk, uses at most five bullets, and adds nothing that is not in the thread"
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
       "notes": "Priority low; tests that the summary drops pleasantries.",
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-01",
@@ -406,7 +420,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-02",
@@ -422,7 +438,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-03",
@@ -438,7 +456,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-04",
@@ -454,7 +474,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-05",
@@ -469,7 +491,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-06",
@@ -485,7 +509,9 @@
       ],
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "draft-07",
@@ -501,7 +527,9 @@
       "max_cost_usd": 0.15,
       "latency_target_ms": 45000,
       "notes": "Priority low: routed config should step this down to the small tier.",
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-01",
@@ -518,7 +546,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-02",
@@ -534,7 +564,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-03",
@@ -550,7 +582,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-04",
@@ -565,7 +599,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-05",
@@ -583,7 +619,9 @@
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
       "notes": "Short ticket with no hard signals: routed config should step this down to the mid tier.",
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-06",
@@ -599,7 +637,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-07",
@@ -615,7 +655,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-08",
@@ -631,7 +673,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-09",
@@ -646,7 +690,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "troubleshoot-10",
@@ -662,7 +708,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "policy-01",
@@ -678,7 +726,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "policy-02",
@@ -694,7 +744,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "policy-03",
@@ -710,7 +762,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "policy-04",
@@ -726,7 +780,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     },
     {
       "id": "policy-05",
@@ -741,7 +797,9 @@
       ],
       "max_cost_usd": 0.25,
       "latency_target_ms": 90000,
-      "reviewed": false
+      "reviewed": true,
+      "reviewer": "Mihir Mukhi",
+      "reviewed_at": "2026-10-05"
     }
   ]
 }
