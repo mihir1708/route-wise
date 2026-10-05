@@ -6,6 +6,7 @@ import { ProviderError } from '@/lib/providers';
 import { benchmarkHash, validateBenchmark, type Benchmark, type BenchmarkItem } from '@/experiment/benchmark';
 import { judgeWorstCase, makeJudge, plannedJobs, requestBody, runExperiment, SpendLimitReached, type ExperimentDependencies, type ItemResult } from '@/experiment/harness';
 import { planExperiment } from '@/experiment/plan';
+import { PUBLISHED_RUN } from '@/experiment/published';
 import { checkPreregistration, DEFAULT_RUNS, renderPinned } from '@/experiment/preregistration';
 import { percentile, renderMarkdown, summarize } from '@/experiment/report';
 import { fieldMatches, judgeRequest, parseJudge, scoreStructured } from '@/experiment/scoring';
@@ -276,5 +277,19 @@ describe('plan and pre-registration', () => {
     expect(checkPreregistration('- Dataset SHA-256: `abd`\n\nApproved by: pending\n', pinned).problems)
       .toEqual(['Dataset SHA-256 differs from the code', 'Runs is not listed', 'not approved yet']);
     expect(renderPinned(pinned)).toBe('- Dataset SHA-256: `abc`\n- Runs: `2`');
+  });
+});
+
+describe('published run', () => {
+  it('matches the committed results file the dashboard cites', () => {
+    const run = JSON.parse(readFileSync(PUBLISHED_RUN.file, 'utf8'));
+    expect(run.meta).toMatchObject({ completed: true, mode: 'preregistered', items: PUBLISHED_RUN.items, runs: PUBLISHED_RUN.runs, benchmark_version: PUBLISHED_RUN.benchmark });
+    expect(run.meta.started_at.slice(0, 10)).toBe(PUBLISHED_RUN.date);
+    expect(run.summary.bar.passed).toBe(PUBLISHED_RUN.barPassed);
+    expect(run.summary.configs.map((c: { config: string }) => c.config)).toEqual(PUBLISHED_RUN.configs.map(c => c.config));
+    for (const [i, c] of PUBLISHED_RUN.configs.entries()) {
+      expect(run.summary.configs[i].success_rate).toBeCloseTo(c.successRate, 4);
+      expect(run.summary.configs[i].cost_per_success_usd).toBeCloseTo(c.costPerSuccessUsd, 6);
+    }
   });
 });

@@ -2,10 +2,29 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 export type AccessRole = 'demo' | 'admin';
 const buckets = new Map<string, { start: number; count: number }>();
-export function allowRate(key: AccessRole | 'attempt', limit: number, now = Date.now()): boolean {
+const MAX_BUCKETS = 10000;
+export function allowRate(key: string, limit: number, now = Date.now()): boolean {
   let bucket = buckets.get(key);
-  if (!bucket || now - bucket.start >= 60000) { bucket = { start: now, count: 0 }; buckets.set(key, bucket); }
+  if (!bucket || now - bucket.start >= 60000) {
+    if (!bucket && buckets.size >= MAX_BUCKETS) {
+      for (const [k, b] of buckets) if (now - b.start >= 60000) buckets.delete(k);
+      if (buckets.size >= MAX_BUCKETS) return false; // too many visitors this minute: fail closed
+    }
+    bucket = { start: now, count: 0 }; buckets.set(key, bucket);
+  }
   return ++bucket.count <= limit;
+}
+/** ROUTEWISE_PUBLIC_DEMO=1 opens the demo to visitors without a password. The demo tenant's
+ * monthly budget and rate limits, enforced in Postgres, cap what all visitors together can spend. */
+export function publicDemo(env = process.env): boolean {
+  return env.ROUTEWISE_PUBLIC_DEMO === '1';
+}
+/** The visitor's address for per-visitor limits. Vercel sets X-Forwarded-For itself; other hosts
+ * must do the same, or one visitor can spread requests over made-up addresses. */
+export function clientAddress(req: IncomingMessage): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
+  return first || req.socket?.remoteAddress || 'unknown';
 }
 function equal(a: string, b: string) {
   return timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
@@ -28,7 +47,8 @@ export function protect(req: IncomingMessage, res: ServerResponse, required: Acc
   if (!process.env.ROUTEWISE_ADMIN_PASSWORD || process.env.ROUTEWISE_ADMIN_PASSWORD.length < 32) return reject(503, 'Access protection is not configured');
   if (rateLimit && !allowRate('attempt', 120)) { res.setHeader('Retry-After', '60'); return reject(429, 'Too many attempts'); }
   const role = authenticate(req.headers.authorization);
-  if (!role) { res.setHeader('WWW-Authenticate', 'Basic realm="RouteWise", charset="UTF-8"'); return reject(401, 'Authentication required'); }
+  const visitor = !role && required === 'demo' && publicDemo();
+  if (!role && !visitor) { res.setHeader('WWW-Authenticate', 'Basic realm="RouteWise", charset="UTF-8"'); return reject(401, 'Authentication required'); }
   if (required === 'admin' && role !== 'admin') return reject(403, 'Admin access required');
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     const origin = req.headers.origin;
@@ -36,6 +56,7 @@ export function protect(req: IncomingMessage, res: ServerResponse, required: Acc
     try { if (origin) sameOrigin = process.env.APP_ORIGIN ? origin === process.env.APP_ORIGIN : new URL(origin).host === req.headers.host; } catch { sameOrigin = false; }
     if (!sameOrigin || req.headers['sec-fetch-site'] === 'cross-site') return reject(403, 'Cross-site request denied');
   }
-  if (rateLimit && !allowRate(role, role === 'admin' ? 60 : 10)) { res.setHeader('Retry-After', '60'); return reject(429, 'Rate limit exceeded'); }
+  const [key, limit] = visitor ? [`visitor:${clientAddress(req)}`, 5] : [role as AccessRole, role === 'admin' ? 60 : 10];
+  if (rateLimit && !allowRate(key, limit)) { res.setHeader('Retry-After', '60'); return reject(429, 'Rate limit exceeded'); }
   return true;
 }
