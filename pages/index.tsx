@@ -80,7 +80,7 @@ export default function Home({ demo }: Props) {
           </div>
           <label htmlFor="input" className="block text-sm font-semibold text-gray-700">{task === 'chat' ? 'Question' : 'Support ticket'}</label>
           <textarea id="input" value={input} onChange={e => setInput(e.target.value)} rows={6} maxLength={DEMO_MAX_INPUT_CHARS} disabled={loading}
-            className="w-full resize-y rounded-lg border-2 border-gray-300 px-4 py-3 focus:border-indigo-500 focus:outline-none" />
+            className="w-full resize-y rounded-lg border-2 border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-indigo-500 focus:outline-none" />
           <p className="text-xs text-gray-500">{input.length} / {DEMO_MAX_INPUT_CHARS} characters. Inputs are not stored; telemetry keeps only a hash.</p>
           <button type="submit" disabled={loading || !input.trim()}
             className="w-full rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400">
