@@ -1,15 +1,15 @@
 // Runs the benchmark through the real gateway pipeline under each configuration.
 // Postgres is replaced by an in-memory ledger; routing, retries, fallback, escalation,
 // validation and cost accounting are the production code paths.
-import { modelCost, tierCandidates, type ModelConfig, type ModelTier } from '@/lib/model-registry';
+import { billableOutputCap, modelCost, type ModelConfig, type ModelTier } from '@/lib/model-registry';
 import { callWithFallback, type Attempt } from '@/lib/provider-chain';
 import type { CallOptions } from '@/lib/providers';
-import { estimateInputTokens, executeGenerate, tierWorstCase, type GenerateDependencies, type RequestRun } from '@/lib/request-run';
+import { estimateInputTokens, executeGenerate, type GenerateDependencies, type RequestRun } from '@/lib/request-run';
 import { CircuitBreaker, DEFAULT_RETRY_POLICY, sleep as realSleep } from '@/lib/resilience';
 import { routeTask } from '@/lib/routing-policy';
 import type { ModelResponse } from '@/types';
 import { isStructured, type Benchmark, type BenchmarkItem, type TaskClass } from './benchmark';
-import { JUDGE_MAX_OUTPUT_TOKENS, JUDGE_PASS_SCORE, JUDGE_SYSTEM, judgeRequest, parseJudge, scoreStructured } from './scoring';
+import { JUDGE_MAX_OUTPUT_TOKENS, JUDGE_MODELS, JUDGE_PASS_SCORE, JUDGE_SYSTEM, judgeRequest, parseJudge, scoreStructured } from './scoring';
 
 export type ConfigName = 'all-premium' | 'routed' | 'all-small';
 /** Each config is the same request under different tenant tier permissions. */
@@ -41,7 +41,7 @@ export interface ItemResult {
   latency_ms: number;
   stage_timings: Record<string, number>;
   answer: string | null;
-  check: { method: 'exact' | 'judge'; passed: boolean; fields?: Record<string, boolean>; score?: number | null; reason?: string };
+  check: { method: 'exact' | 'judge'; passed: boolean; fields?: Record<string, boolean>; score?: number | null; reason?: string; judge_model?: string | null };
   judge_cost_usd: number;
   within_cost: boolean;
   within_latency: boolean;
@@ -52,6 +52,8 @@ export interface ExperimentDependencies {
   models: readonly ModelConfig[];
   call(user: string, model: ModelConfig, options: CallOptions): Promise<ModelResponse>;
   judge(item: BenchmarkItem, answer: string): Promise<Judgement>;
+  /** The judge's candidate models, for reserving its worst-case cost. */
+  judgeModels: readonly ModelConfig[];
   /** Hard stop for the whole run, model and judge calls together. */
   spendLimitUsd: number;
   concurrency?: number;
@@ -88,11 +90,16 @@ export function requestBody(item: BenchmarkItem) {
 /** Longest answer the judge may be handed, in characters (about the largest prompt output cap). */
 const MAX_ANSWER_CHARS = 4000;
 
-/** Worst-case USD to judge one answer: two tries on the high tier's priciest model. */
-export function judgeWorstCase(item: BenchmarkItem, models: readonly ModelConfig[]): number {
+/** The enabled judge models in the registry, grader first. */
+export function judgeCandidates(models: readonly ModelConfig[]): ModelConfig[] {
+  return JUDGE_MODELS.map(id => models.find(m => m.id === id && m.enabled)).filter((m): m is ModelConfig => Boolean(m));
+}
+
+/** Worst-case USD to judge one answer: two tries on the priciest judge candidate. */
+export function judgeWorstCase(item: BenchmarkItem, judgeModels: readonly ModelConfig[]): number {
   if (isStructured(item)) return 0;
   const input = estimateInputTokens(JUDGE_SYSTEM, judgeRequest(item, 'x'.repeat(MAX_ANSWER_CHARS)));
-  return 2 * tierWorstCase('high', models, input, JUDGE_MAX_OUTPUT_TOKENS);
+  return 2 * Math.max(0, ...judgeModels.map(m => modelCost(m, input, billableOutputCap(m, JUDGE_MAX_OUTPUT_TOKENS))));
 }
 
 export async function runExperiment(
@@ -105,7 +112,7 @@ export async function runExperiment(
   const results: ItemResult[] = [];
 
   async function runJob(job: Job): Promise<void> {
-    const reserve = job.item.max_cost_usd + judgeWorstCase(job.item, deps.models);
+    const reserve = job.item.max_cost_usd + judgeWorstCase(job.item, deps.judgeModels);
     if (ledger.stopped || ledger.spent + ledger.reserved + reserve > deps.spendLimitUsd) {
       ledger.stopped = true;
       return;
@@ -149,7 +156,7 @@ export async function runExperiment(
       const j = await deps.judge(item, answer);
       judgeCost = j.cost_usd;
       ledger.spent += j.cost_usd;
-      check = { method: 'judge', passed: j.score !== null && j.score >= JUDGE_PASS_SCORE, score: j.score, reason: j.reason };
+      check = { method: 'judge', passed: j.score !== null && j.score >= JUDGE_PASS_SCORE, score: j.score, reason: j.reason, judge_model: j.model };
     } else {
       check = { method: 'judge', passed: false, score: null, reason: 'no answer to judge' };
     }
@@ -181,16 +188,17 @@ export async function runExperiment(
   return results;
 }
 
-/** A rubric judge on the high tier (with its fallback); a malformed verdict is retried once. */
+/** A rubric judge on the given models (grader, then fallback); a malformed verdict is retried once. */
 export function makeJudge(
-  models: readonly ModelConfig[], call: ExperimentDependencies['call'], sleep: (ms: number) => Promise<void> = realSleep,
+  judgeModels: readonly ModelConfig[], call: ExperimentDependencies['call'], sleep: (ms: number) => Promise<void> = realSleep,
 ): ExperimentDependencies['judge'] {
+  if (!judgeModels.length) throw new Error('No judge model is enabled in the registry');
   const breaker = new CircuitBreaker();
   return async (item, answer) => {
     let cost = 0; let model: string | null = null;
     for (let tryNo = 0; tryNo < 2; tryNo++) {
       try {
-        const { response, model: used } = await callWithFallback(tierCandidates('high', models), judgeRequest(item, answer),
+        const { response, model: used } = await callWithFallback([...judgeModels], judgeRequest(item, answer),
           { system: JUDGE_SYSTEM, maxOutputTokens: JUDGE_MAX_OUTPUT_TOKENS }, { call, breaker, sleep, retryPolicy: DEFAULT_RETRY_POLICY }, []);
         model = used.id;
         if (Number.isSafeInteger(response.prompt_tokens) && Number.isSafeInteger(response.completion_tokens)) {

@@ -4,7 +4,7 @@ import { estimateInputTokens, tierWorstCase } from '@/lib/request-run';
 import { routeTask } from '@/lib/routing-policy';
 import { getPrompt, promptId } from '@/prompts';
 import { isStructured, type Benchmark, type BenchmarkItem } from './benchmark';
-import { CONFIGS, judgeWorstCase, type ConfigName } from './harness';
+import { CONFIGS, judgeCandidates, judgeWorstCase, type ConfigName } from './harness';
 import { JUDGE_SYSTEM, judgeRequest } from './scoring';
 
 const TIERS: readonly ModelTier[] = ['low', 'mid', 'high'];
@@ -47,6 +47,8 @@ export async function planExperiment(benchmark: Benchmark, models: readonly Mode
   const promptVersions = new Set<string>();
   const policyVersions = new Set<string>();
   const configs: ConfigPlan[] = [];
+  const judgeModels = judgeCandidates(models);
+  if (!judgeModels.length) throw new Error('No judge model is enabled in the registry');
   for (const config of CONFIGS) {
     const plan: ConfigPlan = {
       config: config.name, tiers: { low: 0, mid: 0, high: 0 }, refused: [],
@@ -72,10 +74,10 @@ export async function planExperiment(benchmark: Benchmark, models: readonly Mode
       plan.upper_bound_usd += worstCase(decision.tier) + escalation;
       plan.typical_usd += typicalCost(modelForTier(decision.tier, models), inputTokens, TYPICAL_OUTPUT_TOKENS[item.task_type]);
       if (!isStructured(item)) {
-        plan.judge_upper_bound_usd += judgeWorstCase(item, models);
+        plan.judge_upper_bound_usd += judgeWorstCase(item, judgeModels);
         const answer = 'x'.repeat(TYPICAL_OUTPUT_TOKENS[item.task_type] * 4);
         const judgeInput = estimateInputTokens(JUDGE_SYSTEM, judgeRequest(item, answer));
-        plan.judge_typical_usd += typicalCost(modelForTier('high', models), judgeInput, TYPICAL_JUDGE_OUTPUT_TOKENS);
+        plan.judge_typical_usd += typicalCost(judgeModels[0], judgeInput, TYPICAL_JUDGE_OUTPUT_TOKENS);
       }
     }
     configs.push(plan);
