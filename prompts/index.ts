@@ -2,6 +2,8 @@
 // The system text never contains request input, so it is an identical prefix on
 // every call for that version and providers' prompt caching can apply.
 
+import type { JsonSchema } from '@/lib/output-validation';
+
 export const TASK_TYPES = ['classify', 'extract', 'summarize', 'draft_reply', 'troubleshoot', 'chat'] as const;
 export type TaskType = typeof TASK_TYPES[number];
 
@@ -12,6 +14,8 @@ export interface PromptTemplate {
   /** Upper bound sent to the provider; also used for cost and token reservations. */
   maxOutputTokens: number;
   output: 'json' | 'text';
+  /** Required for JSON output: answers that fail it are escalated one tier. */
+  schema?: JsonSchema;
   render(input: string): string;
 }
 
@@ -21,12 +25,20 @@ const ticket = (input: string) =>
 export const PROMPTS: readonly PromptTemplate[] = [
   {
     task: 'classify', version: 'v1', output: 'json', maxOutputTokens: 60,
+    schema: { type: 'object', additionalProperties: false, required: ['category', 'urgency'], properties: {
+      category: { type: 'string', enum: ['billing', 'technical', 'account', 'shipping', 'other'] },
+      urgency: { type: 'string', enum: ['low', 'medium', 'high'] },
+    } },
     system: 'You classify customer support tickets for a SaaS product. Reply with JSON only, no prose: '
       + '{"category": "billing" | "technical" | "account" | "shipping" | "other", "urgency": "low" | "medium" | "high"}.',
     render: ticket,
   },
   {
     task: 'extract', version: 'v1', output: 'json', maxOutputTokens: 200,
+    schema: { type: 'object', additionalProperties: false, required: ['order_id', 'product', 'customer_email', 'requested_action'], properties: {
+      order_id: { type: ['string', 'null'] }, product: { type: ['string', 'null'] },
+      customer_email: { type: ['string', 'null'] }, requested_action: { type: ['string', 'null'] },
+    } },
     system: 'You extract fields from customer support tickets. Reply with JSON only, no prose: '
       + '{"order_id": string | null, "product": string | null, "customer_email": string | null, "requested_action": string | null}. '
       + 'Use null when the ticket does not state a value. Never guess.',

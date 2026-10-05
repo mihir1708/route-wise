@@ -52,17 +52,21 @@ curl -X POST https://<host>/api/generate \
 | --- | --- | --- |
 | `task_type` | yes | `classify`, `extract`, `summarize`, `draft_reply`, `troubleshoot` or `chat` |
 | `input` | yes | Up to 16,000 characters |
-| `priority` | no | `low`, `normal` (default) or `high`; recorded now, used by routing in rules-v1 |
-| `max_cost_usd` | no | Rejects with 402 if the worst-case cost (estimated input plus the template's output cap) is higher |
-| `latency_target_ms` | no | 500 to 120,000; recorded now, drives timeouts once retries land |
+| `priority` | no | `low`, `normal` (default) or `high`; moves the routed tier down or up one step; `high` also bypasses the cache |
+| `max_cost_usd` | no | Routing steps down to the most capable tier whose worst-case cost fits; 402 if none does |
+| `latency_target_ms` | no | 500 to 120,000; at 3,000 or less the high tier is skipped, and retries never wait past it |
 | `prompt_version` | no | e.g. `summarize@v1`; defaults to the newest version of the task's template |
+| `cache` | no | `false` skips the response cache (default `true`) |
 
-Unknown fields are rejected. A success returns `answer` plus `metadata` with the
-model, tier, provider, prompt version, route reasons, tokens, `cost_usd`,
-`latency_ms`, `fallback_used` and the tenant's remaining budget. Errors return
-`{error, request_id}`: 400/413 invalid input, 401 bad key, 402 tenant budget or
-`max_cost_usd`, 429 rate limit (with `Retry-After`), 502 provider failure, 503
-global budget or a dependency outage. Rejections after authentication are logged
+Unknown fields are rejected. A success returns `answer` (and `output`, the parsed
+JSON, for `classify` and `extract`) plus `metadata` with the model, tier,
+provider, prompt version, route reasons, tokens, `cost_usd`, `latency_ms`,
+`cache_hit`, `fallback_used`, `escalated`, the number of provider attempts and the
+tenant's remaining budget. Errors return `{error, request_id}`: 400/413 invalid
+input, 401 bad key, 402 tenant budget or `max_cost_usd`, 429 rate limit (with
+`Retry-After`), 502 when every provider failed (`all_providers_failed`) or the
+answer never matched its schema (`invalid_model_output`), 503 global budget or a
+dependency outage. Rejections after authentication are logged
 in `request_runs` with the stage that stopped them.
 
 Each tenant has a monthly budget, requests-per-minute and tokens-per-minute
@@ -76,12 +80,77 @@ once; only its SHA-256 hash is stored):
 npm run tenant:create -- --name acme --budget 5 --rpm 30 --tpm 20000 --tiers low,mid,high
 ```
 
-Until rules-v1, each task type starts at a fixed tier (classify and extract: low;
-summarize and draft_reply: mid; troubleshoot: high). If the tenant may not use
-that tier or no model is enabled for it, the nearest usable tier is chosen,
-cheaper on ties, and the reason is recorded. `chat` keeps the original
-heuristic-v1 router. Prompt templates live in `prompts/`; their system text never
-contains request input, so it is a stable prefix for providers' prompt caching.
+### Models and tiers
+
+Three tiers, each with an OpenAI primary and an Anthropic fallback (prices in USD
+per million input/output tokens, checked 2026-10-05; `lib/model-registry.ts`):
+
+| Tier | Primary | Fallback |
+| --- | --- | --- |
+| low | `gpt-5.6-luna` ($0.20 / $1.20), reasoning off | `claude-haiku-4-5` ($1 / $5) |
+| mid | `gpt-5.6-terra` ($2 / $12), low reasoning | `claude-sonnet-5-5` ($2 / $10), thinking off |
+| high | `gpt-5.6-sol` ($5 / $30), low reasoning | `claude-opus-5-5` ($4 / $20), low effort |
+
+Reasoning models are billed for hidden reasoning tokens, so each model can declare
+`reasoningHeadroomTokens`; it is added to the provider's output cap and to every
+worst-case cost and token reservation. Override the registry with
+`ROUTEWISE_MODELS_JSON` (one enabled model per tier per provider; the first
+enabled model of a tier is the primary).
+
+### Routing: rules-v1
+
+Each step that changes the tier adds a line to `route_reasons`:
+
+1. Start at the task's tier: classify and extract low; summarize and draft_reply
+   mid; troubleshoot high.
+2. Ticket difficulty (0 to 1, from named signals: long thread, error output, many
+   questions, high stakes such as outages or security, "already tried"). Extract,
+   summarize and draft_reply move up a tier at 0.6 or more; a short troubleshoot
+   ticket with no signals moves down to mid.
+3. Priority `high` moves up one tier; `low` moves down one.
+4. A latency target of 3,000 ms or less caps the tier at mid.
+5. With 90% of the global monthly budget spent, non-high-priority requests move
+   down one tier.
+6. The tenant's allowed tiers: the nearest usable tier, cheaper on ties.
+7. `max_cost_usd`: the most capable allowed tier whose worst case fits.
+
+`chat` keeps the original heuristic-v1 router. Prompt templates live in
+`prompts/`; their system text never contains request input, so it is a stable
+prefix for providers' prompt caching.
+
+### Reliability
+
+Provider errors are normalized (rate limited, overloaded, server, timeout,
+network, auth, bad request, refused, empty). Transient ones are retried once on
+the same model with full-jitter exponential backoff (250 ms base, 2 s cap,
+`Retry-After` respected; a longer `Retry-After` goes straight to the fallback).
+Then the other provider in the same tier is tried. A per-model circuit breaker
+opens after 5 consecutive transient failures, skips the model for 30 seconds,
+then lets one probe through; its state is per server instance. Both SDKs run with
+their own retries off, so every call is visible in `request_attempts`.
+
+`classify` and `extract` answers are checked against the template's JSON schema.
+An answer that fails is escalated once to the next tier up the tenant may use,
+if its worst case still fits the budget and `max_cost_usd`; both calls are
+charged.
+
+### Response cache
+
+Successful answers are cached per tenant for `ROUTEWISE_CACHE_TTL_S` seconds
+(default 86,400; `0` turns the cache off), keyed by a SHA-256 of the prompt
+version and the exact input. A hit skips budget, routing and the provider, costs
+nothing and refunds the token reservation; it still counts against the request
+rate limit. The cache stores the answer text but never the input. Priority `high`,
+`"cache": false` and the chat UI always get a fresh answer. Expired entries are
+deleted by `maintain_retention()`.
+
+### Telemetry
+
+Each request writes one `request_runs` row (now with `cache_hit`,
+`fallback_used`, `attempt_count` and per-stage `stage_timings` in milliseconds)
+and one `request_attempts` row per provider call: model, provider, outcome,
+error kind, HTTP status, latency, tokens and cost. Neither holds prompt or answer
+text.
 
 The chat UI (`/api/route-query`) is a thin wrapper that runs `chat` tasks as the
 built-in `demo` tenant, which migration 009 creates with a $1 monthly budget.
@@ -104,6 +173,7 @@ to run once; there is no automatic migration ledger.
 7. 007: consent-based verification jobs and atomic worker claim.
 8. 008: bounded analytics and retention maintenance.
 9. 009: tenants, per-tenant budgets and Postgres rate limits.
+10. 010: provider attempts, request flags and stage timings, response cache.
 
 Apply migrations before deploying code, preferably with traffic paused because
 005 changes an RPC signature. Existing monthly balances and budget limits are
@@ -116,8 +186,9 @@ beginning of historical records. See `migrations/README.md` and
 
 The browser calls protected Next.js API routes. The request handler coordinates:
 
-validate → rate limit → admission → routing and cost check → provider → usage
-capture → atomic accounting → telemetry → response. Every routed request has a UUID. RequestRun stores actual
+validate → rate limit → cache → admission → routing and cost check → provider
+(retries and fallback) → usage capture → output validation (and escalation) →
+atomic accounting → telemetry → response. Every routed request has a UUID. RequestRun stores actual
 model, tier, difficulty, reasons, policy/pricing versions, tokens, cost, latency,
 provider/application outcomes and failure stage/category.
 
@@ -126,7 +197,7 @@ Accounting failure returns a valid answer with `accounting_status=failed` and
 preserves captured usage for investigation. Telemetry failure does not discard
 an answer; a sanitized console event identifies the request. If both accounting
 and persistence fail, external provider billing/log reconciliation is necessary.
-No automatic client or SDK retry is attempted. Admission still checks already
+SDK retries are off; the gateway's own retries and fallback are described above. Admission still checks already
 recorded spending; there is no reservation or guarantee against concurrent budget
 overshoot. The displayed remaining budget is an estimate from the admission
 snapshot, not an authoritative post-call balance.

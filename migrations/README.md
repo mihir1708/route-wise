@@ -86,3 +86,13 @@ global spend in one transaction. It also creates the keyless `demo` tenant used 
 the chat UI and extends retention to delete rate-limit windows older than a day.
 `npm run test:postgres` covers it, including 30 concurrent requests against a
 10 RPM limit and 100 concurrent tenant charges.
+
+## 010: reliability and response cache
+
+Adds `request_attempts` (one row per provider call or circuit-breaker skip:
+model, provider, tier, outcome, error kind, HTTP status, latency, tokens, cost;
+deleted with its run), new `request_runs` columns (`cache_hit`, `fallback_used`,
+`attempt_count`, `stage_timings`), and `response_cache` with the `cache_lookup`
+and `cache_store` RPCs. Cache rows are scoped to a tenant, keyed by a hash, and
+removed by `maintain_retention()` once expired. `npm run test:postgres` covers
+the cache round trip, tenant isolation, expiry, retention and attempt cascades.

@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import data from '@/eval/datasets/starter-v1.json';
 import { validateDataset } from '@/eval/schema';
 import { runEvaluation } from '@/eval/runner';
+import { LEGACY_MODELS } from '@/lib/model-registry';
 afterEach(() => vi.unstubAllEnvs());
 it('defaults to zero paid calls and null metrics', async () => {
   vi.stubEnv('ROUTEWISE_LIVE_EVAL',''); const call = vi.fn();
@@ -15,7 +16,7 @@ it('CI blocks live calls even with opt-in', async () => {
   expect(run.mode).toBe('dry-run'); expect(call).not.toHaveBeenCalled();
 });
 it('rejects an unconfigured mid tier before any provider call', async () => {
-  const call = vi.fn(); await expect(runEvaluation(validateDataset(data), { strategies: ['mid-only'], call })).rejects.toThrow(); expect(call).not.toHaveBeenCalled();
+  const call = vi.fn(); await expect(runEvaluation(validateDataset(data), { strategies: ['mid-only'], models: LEGACY_MODELS, call })).rejects.toThrow(); expect(call).not.toHaveBeenCalled();
 });
 it('records provider results only with explicit opt-in (mock)', async () => {
   vi.stubEnv('ROUTEWISE_LIVE_EVAL','1'); vi.stubEnv('CI','false');
