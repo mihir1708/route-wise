@@ -16,12 +16,13 @@ it('rate buckets have fixed keys and reset after a minute', () => {
   expect(allowRate('demo', 1, 0)).toBe(true); expect(allowRate('demo', 1, 1)).toBe(false);
   expect(allowRate('demo', 1, 60001)).toBe(true);
 });
-it.each([['demo', 'GET', undefined, 403], ['admin', 'POST', 'https://evil.test', 403], ['admin', 'GET', undefined, 200]] as const)(
+it.each([['demo', 'GET', undefined, 401], ['admin', 'POST', 'https://evil.test', 403], ['admin', 'GET', undefined, 200]] as const)(
   'protects roles and origins %s %s', (role, method, origin, status) => {
     vi.stubEnv('ROUTEWISE_ADMIN_PASSWORD', password); vi.stubEnv('ROUTEWISE_DEMO_PASSWORD', password);
     const req = { headers: { authorization: header(role), origin, host: 'localhost:3000' }, method } as IncomingMessage;
     const res = { statusCode: 200, setHeader: vi.fn(), end: vi.fn() } as unknown as ServerResponse;
     protect(req, res, 'admin', false); expect(res.statusCode).toBe(status);
+    if (role === 'demo') expect(res.setHeader).toHaveBeenCalledWith('WWW-Authenticate', expect.stringContaining('Basic'));
   },
 );
 describe('public demo', () => {
@@ -41,7 +42,7 @@ describe('public demo', () => {
     expect(call('demo', '203.0.113.2').status).toBe(429);
     expect(call('demo', '203.0.113.3').ok).toBe(true);
     expect(call('admin', '203.0.113.4').status).toBe(401);
-    expect(call('admin', '203.0.113.4', header('demo', 'b'.repeat(32))).status).toBe(403);
+    expect(call('admin', '203.0.113.4', header('demo', 'b'.repeat(32))).status).toBe(401);
   });
   it('still needs the admin password configured', () => {
     vi.stubEnv('ROUTEWISE_PUBLIC_DEMO', '1'); vi.stubEnv('ROUTEWISE_ADMIN_PASSWORD', '');

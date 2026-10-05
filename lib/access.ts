@@ -48,8 +48,10 @@ export function protect(req: IncomingMessage, res: ServerResponse, required: Acc
   if (rateLimit && !allowRate('attempt', 120)) { res.setHeader('Retry-After', '60'); return reject(429, 'Too many attempts'); }
   const role = authenticate(req.headers.authorization);
   const visitor = !role && required === 'demo' && publicDemo();
-  if (!role && !visitor) { res.setHeader('WWW-Authenticate', 'Basic realm="RouteWise", charset="UTF-8"'); return reject(401, 'Authentication required'); }
-  if (required === 'admin' && role !== 'admin') return reject(403, 'Admin access required');
+  const challenge = (message: string) => { res.setHeader('WWW-Authenticate', 'Basic realm="RouteWise", charset="UTF-8"'); return reject(401, message); };
+  if (!role && !visitor) return challenge('Authentication required');
+  // 401 rather than 403, so a browser still holding the demo login asks for the admin one.
+  if (required === 'admin' && role !== 'admin') return challenge('Admin access required');
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     const origin = req.headers.origin;
     let sameOrigin = !origin;
