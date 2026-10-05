@@ -9,8 +9,14 @@ export type ProviderErrorKind =
   | 'auth' | 'bad_request' | 'refused' | 'empty' | 'not_configured' | 'unknown';
 const RETRYABLE: ReadonlySet<ProviderErrorKind> = new Set(['rate_limited', 'overloaded', 'server', 'timeout', 'network']);
 
+/** Tokens the provider billed for a call that still failed, such as an empty or refused answer. */
+export interface BilledUsage { prompt_tokens: number; completion_tokens: number }
+
 export class ProviderError extends Error {
-  constructor(readonly kind: ProviderErrorKind, readonly status: number | null = null, readonly retryAfterMs: number | null = null) {
+  constructor(
+    readonly kind: ProviderErrorKind, readonly status: number | null = null, readonly retryAfterMs: number | null = null,
+    readonly usage: BilledUsage | null = null,
+  ) {
     super(`provider_${kind}`);
   }
   /** Worth another try on the same model: a transient, provider-side condition. */
@@ -71,14 +77,15 @@ async function callOpenAI(user: string, model: ModelConfig, options: CallOptions
     ...(model.reasoningEffort ? { reasoning_effort: model.reasoningEffort as OpenAI.ReasoningEffort } : {}),
   }, { timeout: options.timeoutMs ?? DEFAULT_TIMEOUT_MS });
   const choice = response.choices[0];
-  if (choice?.message?.refusal) throw new ProviderError('refused');
-  return {
+  const result = {
     content: choice?.message?.content ?? '',
     prompt_tokens: response.usage?.prompt_tokens ?? NaN,
     completion_tokens: response.usage?.completion_tokens ?? NaN,
     total_tokens: response.usage?.total_tokens ?? NaN,
     truncated: choice?.finish_reason === 'length',
   };
+  if (choice?.message?.refusal) throw new ProviderError('refused', null, null, billed(result));
+  return result;
 }
 
 async function callAnthropic(user: string, model: ModelConfig, options: CallOptions): Promise<ModelResponse> {
@@ -91,13 +98,20 @@ async function callAnthropic(user: string, model: ModelConfig, options: CallOpti
     ...(model.thinking === 'off' ? { thinking: { type: 'between_tools' as const } } : {}),
     ...(model.reasoningEffort ? { output_config: { effort: model.reasoningEffort as 'low' | 'medium' | 'high' } } : {}),
   }, { timeout: options.timeoutMs ?? DEFAULT_TIMEOUT_MS });
-  if (response.stop_reason === 'refusal') throw new ProviderError('refused');
   const content = response.content.map(block => (block.type === 'text' ? block.text : '')).join('');
   const input = response.usage.input_tokens + (response.usage.cache_read_input_tokens ?? 0) + (response.usage.cache_creation_input_tokens ?? 0);
-  return {
+  const result = {
     content, prompt_tokens: input, completion_tokens: response.usage.output_tokens,
     total_tokens: input + response.usage.output_tokens, truncated: response.stop_reason === 'max_tokens',
   };
+  if (response.stop_reason === 'refusal') throw new ProviderError('refused', null, null, billed(result));
+  return result;
+}
+
+/** Usage worth charging from a response that is about to be rejected, or null if it is not usable. */
+function billed(r: ModelResponse): BilledUsage | null {
+  return [r.prompt_tokens, r.completion_tokens].every(n => Number.isSafeInteger(n) && n >= 0)
+    ? { prompt_tokens: r.prompt_tokens, completion_tokens: r.completion_tokens } : null;
 }
 
 /** One attempt against one model. Throws ProviderError; never retries. */
@@ -107,6 +121,7 @@ export async function callProvider(user: string, model: ModelConfig, options: Ca
   try {
     response = model.provider === 'anthropic' ? await callAnthropic(user, model, options) : await callOpenAI(user, model, options);
   } catch (error) { throw classifyProviderError(error); }
-  if (!response.content.trim()) throw new ProviderError('empty');
+  // An empty answer is still billed, for example when reasoning used the whole output budget.
+  if (!response.content.trim()) throw new ProviderError('empty', null, null, billed(response));
   return response;
 }

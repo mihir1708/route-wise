@@ -70,7 +70,11 @@ export async function callWithFallback(
       } catch (error) {
         const e = classifyProviderError(error);
         if (e.retryable) deps.breaker.failure(model.id); else deps.breaker.release(model.id);
-        record({ error_kind: e.kind, http_status: e.status, latency_ms: now() - started });
+        // A failed call can still be billed (an empty or refused answer); record it so it is charged.
+        record({
+          error_kind: e.kind, http_status: e.status, latency_ms: now() - started,
+          ...(e.usage ? { ...e.usage, cost_usd: modelCost(model, e.usage.prompt_tokens, e.usage.completion_tokens) } : {}),
+        });
         lastKind = e.kind;
         if (!e.retryable || tryNo === deps.retryPolicy.maxAttempts) break;
         const delay = backoffDelay(tryNo, deps.retryPolicy, e.retryAfterMs, deps.random);

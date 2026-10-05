@@ -223,7 +223,7 @@ export async function executeGenerate(
         ...(request.prompt.schema ? { output: (validateJsonOutput(hit.answer, request.prompt.schema) as { value: unknown }).value } : {}),
         metadata: {
           request_id: requestId, task_type: request.task_type, prompt_version: run.prompt_version,
-          model: hit.model, tier: hit.tier, cache_hit: true, fallback_used: false, escalated: false, attempts: 0,
+          model: hit.model, tier: hit.tier, cache_hit: true, fallback_used: false, escalated: false, truncated: false, attempts: 0,
           tokens: { input: 0, output: 0, total: 0 }, cost_usd: 0, accounting_status: 'not_charged',
         },
       };
@@ -255,10 +255,24 @@ export async function executeGenerate(
         retryPolicy: deps.retryPolicy ?? DEFAULT_RETRY_POLICY, random: deps.random,
       };
       const deadline = request.latency_target_ms === null ? null : started + request.latency_target_ms;
+      // Failed attempts the provider still billed (empty or refused answers) are charged like answers.
+      const chargeFailedAttempts = (from: number) => {
+        for (const t of attempts.slice(from)) {
+          if (t.outcome !== 'error' || t.cost_usd === null) continue;
+          Object.assign(spend, {
+            cost: spend.cost + t.cost_usd, prompt: spend.prompt + (t.prompt_tokens ?? 0),
+            completion: spend.completion + (t.completion_tokens ?? 0), model: spend.model ?? getModel(t.model, deps.models),
+          });
+        }
+      };
       const callTier = async (tier: ModelTier) => {
         enter('provider');
-        const result = await callWithFallback(tierCandidates(tier, deps.models), user,
-          { system: request.prompt.system, maxOutputTokens: outputCap }, chain, attempts, deadline);
+        const from = attempts.length;
+        let result: Awaited<ReturnType<typeof callWithFallback>>;
+        try {
+          result = await callWithFallback(tierCandidates(tier, deps.models), user,
+            { system: request.prompt.system, maxOutputTokens: outputCap }, chain, attempts, deadline);
+        } finally { chargeFailedAttempts(from); }
         run.provider_succeeded = true;
         enter('usage_capture');
         const r = result.response;
@@ -326,8 +340,8 @@ export async function executeGenerate(
         metadata: {
           request_id: requestId, task_type: request.task_type, prompt_version: run.prompt_version,
           model: spend.model!.id, tier, provider: spend.model!.provider, cache_hit: false,
-          fallback_used: run.fallback_used, escalated: run.escalated, attempts: attempts.length,
-          route_reasons: run.route_reasons, difficulty_score: decision.difficulty,
+          fallback_used: run.fallback_used, escalated: run.escalated, truncated: Boolean(response.truncated),
+          attempts: attempts.length, route_reasons: run.route_reasons, difficulty_score: decision.difficulty,
           tokens: { input: spend.prompt, output: spend.completion, total: run.total_tokens },
           cost_usd: usd(run.cost_usd), accounting_status: accountingStatus,
           tenant_budget: a.tenantBudget, tenant_budget_remaining: usd(Math.max(0, tenantRemaining - run.cost_usd)),

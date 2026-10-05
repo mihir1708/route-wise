@@ -79,3 +79,25 @@ A failed or refused request counts as a failure and is never dropped.
 - **Latency depends on conditions.** It includes provider load at run time and the concurrency of 4.
 
 Approved by: Mihir Mukhi, 2026-10-05
+
+## Outcome (added after the run)
+
+The approved run finished on 2026-10-05 at commit `e30658f` with a clean tree. Its report is `experiment/results/2026-10-05T15-50-49-953Z-preregistered.md`. **Routed did not meet the bar,** so no savings figure is reported.
+
+| Config | Success | Simple | Standard | Complex |
+| --- | --- | --- | --- | --- |
+| all-premium | 84.4% | 86.7% | 96.7% | 70.0% |
+| routed | 81.1% | 93.3% | 100.0% | 50.0% |
+| all-small | 81.1% | 86.7% | 100.0% | 56.7% |
+
+Routed was 3.3 points below all-premium overall, where 3 were allowed, and 20 points below in the complex class, where one ticket-run (3.3 points) was allowed. It matched or beat all-premium on simple and standard tickets.
+
+What the per-item results show:
+
+- **A fallback bug caused 7 of routed's 15 complex failures.** In 7 of 90 routed requests, all of them troubleshoot tickets on the mid tier, gpt-5.6-terra returned an empty answer, most likely because reasoning used its whole 2,000-token output budget. The gateway then fell back to claude-sonnet-5-5, which has no reasoning headroom, so its budget was the 1,000-token answer cap. troubleshoot@v1 set no length, so all 7 answers were cut off mid-sentence and failed.
+- **When gpt-5.6-terra did answer, it matched all-premium.** It passed 3 of 7 troubleshoot ticket-runs, and gpt-5.6-sol in all-premium passed 3 of the same 7.
+- **Grading noise is about the size of the class bar.** On the 8 complex tickets that routed also sent to gpt-5.6-sol, routed passed 12 of 16 ticket-runs and all-premium passed 14 of 16, with the same model and prompt.
+- **Recorded cost leaves out the empty answers.** The gateway did not charge the tokens billed for an empty answer, so routed's cost is understated, by up to about $0.09 per run (an estimate from gpt-5.6-terra's output cap).
+- **Two verdicts failed.** The judge gave no usable score for two all-premium answers, which count as failures as stated above.
+
+After the run, the gateway was fixed: troubleshoot@v2 asks for an answer under 500 words, gpt-5.6-terra has the same 2,000 tokens of reasoning headroom as gpt-5.6-sol, tokens billed for empty or refused answers are charged, and responses report whether the answer was cut off. The Prompts value above therefore no longer matches the code, so `--live` refuses this pre-registration. As stated above, a later attempt would need a new dataset or routing policy, and none is planned.
