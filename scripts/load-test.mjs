@@ -94,7 +94,7 @@ END $$;` + readFileSync('supabase-schema.sql', 'utf8'), db.toString());
   const scenarios = [];
   const runs = [['one-tenant', 1, SETTLE], ['many-tenants', TENANTS, SETTLE], ['many-tenants, no global row (diagnostic)', TENANTS, SETTLE_TENANT_ONLY]];
   for (const [name, tenants, settle] of runs) {
-    await sql(`TRUNCATE request_attempts, verification_jobs, request_runs, rate_limit_windows, tenant_usage; DELETE FROM model_usage WHERE month='${MONTH}'; DELETE FROM budget_usage_shards WHERE month='${MONTH}'; DELETE FROM budget_tracking WHERE month='${MONTH}';`, db.toString());
+    await sql(`TRUNCATE request_attempts, request_runs, rate_limit_windows, tenant_usage; DELETE FROM model_usage WHERE month='${MONTH}'; DELETE FROM budget_usage_shards WHERE month='${MONTH}'; DELETE FROM budget_tracking WHERE month='${MONTH}';`, db.toString());
     const r = await pgbench(name.split(',')[0] + (settle === SETTLE ? '' : '-diagnostic'), request(settle), tenants, dir);
     const n = String(r.processed);
     // Every completed request must be charged, counted and logged exactly once.

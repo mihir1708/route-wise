@@ -33,22 +33,19 @@ export interface RouterLog {
 }
 
 // API types
-export interface RouteQueryRequest {
-  query: string;
-}
-
-export interface RouteQueryResponse {
+/** The body /api/generate and the demo endpoint return for an answered request. */
+export interface GatewayAnswer {
   answer: string;
+  /** Parsed JSON, for tasks with structured output. */
+  output?: unknown;
   metadata: {
-    model_used: ModelName;
-    difficulty_score: number;
-    tokens_used: number;
-    cost: number;
-    remaining_budget: number;
-    budget_limit: number;
-    model_tier: import('@/lib/model-registry').ModelTier;
-    accounting_status: string;
-    request_id: string;
+    request_id: string; task_type: string; prompt_version: string; model: string;
+    tier: import('@/lib/model-registry').ModelTier; provider?: string;
+    cache_hit: boolean; fallback_used: boolean; escalated: boolean; truncated: boolean; attempts: number;
+    /** Absent on cache hits, which skip routing. */
+    route_reasons?: string[]; difficulty_score?: number | null;
+    tokens: { input: number; output: number; total: number }; cost_usd: number; accounting_status: string;
+    tenant_budget?: number; tenant_budget_remaining?: number; latency_ms: number;
   };
 }
 
@@ -72,14 +69,26 @@ export interface ModelResponse {
   truncated?: boolean;
 }
 
-// Admin data is production telemetry only, for one UTC calendar month.
-export interface UsageStats {
-  total_requests: number; total_cost: number; budget_remaining: number;
-  budget_limit: number; accounted_spend: number; failed_requests: number;
-  unsettled_requests: number; unknown_usage_requests: number;
-  window_start: string; window_end: string;
-  model_distribution: Record<string, number>; tier_distribution: Record<string, number>;
-  policy_distribution: Record<string, number>;
-  recent_logs: import('@/lib/request-run').RequestRun[];
-  daily_costs: { date: string; cost: number | null }[];
+// Admin dashboard: production telemetry for whole UTC days, optionally for one tenant
+// (gateway_dashboard in migration 012).
+type ModelTierName = import('@/lib/model-registry').ModelTier;
+export interface DashboardStats {
+  window_start: string; window_end: string; days: number; tenant: string | null;
+  tenants: { id: string; name: string }[];
+  summary: {
+    requests: number; succeeded: number; cost_usd: number; provider_requests: number;
+    cache_hits: number; fallbacks: number; escalations: number; rate_limited: number; budget_rejected: number;
+    unsettled: number; unknown_usage: number; p50_ms: number | null; p95_ms: number | null;
+  };
+  tiers: { tier: ModelTierName; requests: number; succeeded: number; cost_usd: number; p50_ms: number | null; p95_ms: number | null }[];
+  models: Record<string, number>;
+  daily: { date: string; requests: number; succeeded: number; cost_usd: number; cache: number; low: number; mid: number; high: number }[];
+  recent: {
+    request_id: string; timestamp: string; tenant_name: string | null; task_type: string | null;
+    selected_model: string | null; selected_tier: ModelTierName | null; routing_policy_version: string;
+    cache_hit: boolean; fallback_used: boolean; escalated: boolean; application_succeeded: boolean;
+    failure_stage: string | null; error_category: string | null; cost_usd: number | null; latency_ms: number;
+  }[];
+  /** This month's budget: the selected tenant's, or the global one. */
+  budget: { scope: 'tenant' | 'global'; month: string; limit: number; spent: number };
 }

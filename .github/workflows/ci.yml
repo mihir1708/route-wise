@@ -8,7 +8,6 @@ jobs:
     env:
       CI: 'true'
       ROUTEWISE_LIVE_EVAL: '0'
-      ROUTEWISE_VERIFICATION_ENABLED: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
