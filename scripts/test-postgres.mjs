@@ -28,8 +28,9 @@ for (const file of readdirSync('migrations').filter(f=>/^\d+_.+\.sql$/.test(f)).
 await sql(readFileSync('migrations/verify_001_budget_total_cost_precision.sql','utf8'));
 await Promise.all(Array.from({length:10},()=>sql("SELECT public.increment_budget_usage('2099-01',0.001,'gpt-3.5-turbo',321,'low') FROM generate_series(1,10);")));
 await sql(`DO $$ BEGIN
- IF NOT EXISTS(SELECT FROM budget_tracking WHERE month='2099-01' AND total_cost=0.1 AND total_requests=100 AND budget_limit=321) THEN RAISE EXCEPTION 'Concurrent increments lost'; END IF;
- IF NOT EXISTS(SELECT FROM model_usage WHERE month='2099-01' AND total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Model increments lost'; END IF;
+ IF NOT EXISTS(SELECT FROM ensure_budget_month('2099-01',999) WHERE total_cost=0.1 AND total_requests=100 AND budget_limit=321) THEN RAISE EXCEPTION 'Concurrent increments lost'; END IF;
+ IF NOT EXISTS(SELECT FROM model_usage_totals WHERE month='2099-01' AND total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Model increments lost'; END IF;
+ IF (SELECT count(*) FROM budget_usage_shards WHERE month='2099-01') < 2 THEN RAISE EXCEPTION 'Increments not spread across shards'; END IF;
  IF NOT EXISTS(SELECT FROM budget_tracking WHERE month='2099-02' AND total_cost=12.34 AND budget_limit=321) THEN RAISE EXCEPTION 'Migration changed balance'; END IF;
  PERFORM ensure_budget_month('2099-02',999);
  IF NOT EXISTS(SELECT FROM budget_tracking WHERE month='2099-02' AND budget_limit=321) THEN RAISE EXCEPTION 'Limit overwritten'; END IF;
@@ -45,7 +46,7 @@ await sql(`DO $$ BEGIN
  IF (SELECT sum(requests) FROM rate_limit_windows WHERE tenant_id='00000000-0000-4000-8000-0000000000b1') NOT BETWEEN 10 AND 20 THEN RAISE EXCEPTION 'Concurrent rate limit admitted too many'; END IF;
  IF NOT EXISTS(SELECT FROM rate_limit_windows WHERE tenant_id='00000000-0000-4000-8000-0000000000b1' AND requests=10) THEN RAISE EXCEPTION 'Rate limit window did not fill to its limit'; END IF;
  IF NOT EXISTS(SELECT FROM tenant_usage WHERE tenant_id='00000000-0000-4000-8000-0000000000b1' AND month='2099-05' AND total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Concurrent tenant charges lost'; END IF;
- IF NOT EXISTS(SELECT FROM budget_tracking WHERE month='2099-05' AND total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Concurrent global charges lost'; END IF;
+ IF NOT EXISTS(SELECT FROM ensure_budget_month('2099-05',999) WHERE total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Concurrent global charges lost'; END IF;
 END $$;`);
 const freshName=`routewise_bootstrap_${Date.now()}`;
 await sql(`CREATE DATABASE ${freshName}`);

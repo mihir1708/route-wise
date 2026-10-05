@@ -94,17 +94,8 @@ export async function resetBudget(month?: string): Promise<void> {
   const targetMonth = month || getCurrentMonth();
   const budgetLimit = getBudgetLimit();
 
-  const { error } = await supabaseAdmin
-    .from('budget_tracking')
-    .upsert({
-      month: targetMonth,
-      total_cost: 0,
-      total_requests: 0,
-      cheap_model_count: 0,
-      mid_model_count: 0,
-      expert_model_count: 0,
-      budget_limit: budgetLimit
-    });
+  // One transaction clears the month row and its spend shards.
+  const { error } = await supabaseAdmin.rpc('reset_budget_month', { p_month: targetMonth, p_limit: budgetLimit });
 
   if (error) {
     logger.error('Error resetting budget', error);

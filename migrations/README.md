@@ -96,3 +96,17 @@ deleted with its run), new `request_runs` columns (`cache_hit`, `fallback_used`,
 and `cache_store` RPCs. Cache rows are scoped to a tenant, keyed by a hash, and
 removed by `maintain_retention()` once expired. `npm run test:postgres` covers
 the cache round trip, tenant isolation, expiry, retention and attempt cascades.
+
+## 011: sharded global spend
+
+Every settled request used to update the same `budget_tracking` month row and
+`model_usage` row, so concurrent requests from all tenants queued on those row
+locks. This migration adds `budget_usage_shards` (16 rows per month) and a `shard`
+column on `model_usage`; `increment_budget_usage` adds each charge to the shard
+chosen by its transaction id. `ensure_budget_month` returns the month row plus its
+shards, so `tenant_admission`, the admin stats and the budget alerts read exact
+totals as before. Read per-model totals from the new `model_usage_totals` view.
+`reset_budget_month` clears a month and its shards in one transaction. Spend
+recorded before the migration stays on the month row and is still counted.
+`npm run test:postgres` covers concurrent increments across shards, the reset and
+the new privileges, and `npm run load-test` measures the effect.
