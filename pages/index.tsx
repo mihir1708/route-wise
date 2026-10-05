@@ -1,222 +1,136 @@
-// Main page - chat interface for testing the router
-
-import { useState } from 'react';
+import type { GetServerSideProps } from 'next';
 import Head from 'next/head';
-import { RouteQueryResponse } from '@/types';
+import Link from 'next/link';
+import { useState } from 'react';
+import { protect } from '@/lib/access';
+import { DEMO_MAX_INPUT_CHARS, DEMO_TASKS } from '@/lib/demo';
+import { DEMO_TENANT, findTenantByName } from '@/lib/tenants';
+import type { GatewayAnswer } from '@/types';
 
-export default function Home() {
-  const [query, setQuery] = useState('');
+interface Props { demo: { budget: number; rpm: number } | null }
+
+const TIER_STYLE = { low: 'bg-green-100 text-green-800', mid: 'bg-amber-100 text-amber-800', high: 'bg-purple-100 text-purple-800' } as const;
+
+/** Plain-language versions of the gateway's rejection codes. */
+function explain(status: number, error: string, retryAfter: string | null): string {
+  const wait = retryAfter ? ` Try again in ${retryAfter} seconds.` : '';
+  if (error === 'rpm_exceeded' || error === 'tpm_exceeded') return `The demo's shared rate limit is used up for this minute.${wait}`;
+  if (status === 429) return `You have sent the most requests one visitor can send in a minute.${wait}`;
+  if (error === 'tenant_budget_exhausted') return "The demo's budget for this month is spent, so the gateway is refusing new requests.";
+  if (error === 'budget_exhausted') return 'The global monthly budget is spent, so the gateway is refusing new requests.';
+  if (error === 'all_providers_failed') return 'Every model for the chosen tier failed, including the fallback provider.';
+  if (error === 'invalid_model_output') return 'The model returned output that failed the schema, even after escalating a tier.';
+  return `Request failed: ${error}`;
+}
+
+export default function Home({ demo }: Props) {
+  const [task, setTask] = useState(DEMO_TASKS[0].task);
+  const [input, setInput] = useState(DEMO_TASKS[0].sample);
   const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<RouteQueryResponse | null>(null);
+  const [answer, setAnswer] = useState<GatewayAnswer | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [totalCost, setTotalCost] = useState(0);
+  const [sessionCost, setSessionCost] = useState(0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const choose = (next: typeof task) => {
+    setTask(next); setInput(DEMO_TASKS.find(t => t.task === next)!.sample); setAnswer(null); setError(null);
+  };
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!query.trim()) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setResponse(null);
-
+    if (!input.trim()) return;
+    setLoading(true); setError(null); setAnswer(null);
     try {
       const res = await fetch('/api/route-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task_type: task, input }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Request failed');
-      }
-
-      setResponse(data);
-      setTotalCost(prev => prev + data.metadata.cost);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
+      if (!res.ok) { setError(explain(res.status, data.error ?? 'unknown_error', res.headers.get('Retry-After'))); return; }
+      setAnswer(data);
+      setSessionCost(c => c + data.metadata.cost_usd);
+    } catch {
+      setError('Could not reach the gateway.');
+    } finally { setLoading(false); }
   };
 
-  const getModelColor = (model: string) => {
-    if (model === 'gpt-4') return 'text-purple-600 bg-purple-100';
-    return 'text-green-600 bg-green-100';
-  };
+  const m = answer?.metadata;
+  return <>
+    <Head>
+      <title>RouteWise: cost-aware LLM gateway</title>
+      <meta name="description" content="Routes each request to the cheapest model tier likely to handle it, with fallback, caching and per-tenant budgets." />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </Head>
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-10">
+      <div className="mx-auto max-w-4xl space-y-6">
+        <header className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 md:text-5xl">RouteWise</h1>
+          <p className="mt-3 text-lg text-gray-700">An LLM gateway that sends each support task to the cheapest model tier likely to handle it,
+            falls back to a second provider when one fails, and enforces per-tenant budgets and rate limits.</p>
+          <Link href="/admin" className="mt-3 inline-block font-medium text-indigo-700 hover:text-indigo-900">Gateway dashboard (admin) →</Link>
+        </header>
 
-  const getDifficultyColor = (score: number) => {
-    if (score >= 0.8) return 'text-red-600';
-    if (score >= 0.5) return 'text-yellow-600';
-    return 'text-green-600';
-  };
+        <p className="rounded-lg bg-white/70 p-3 text-center text-sm text-gray-700">
+          {demo
+            ? `This demo runs as a tenant with a $${demo.budget.toFixed(2)} monthly budget and ${demo.rpm} requests a minute, shared by every visitor. When either runs out, the gateway refuses requests; that is part of the demo.`
+            : 'This demo runs as a tenant with a small monthly budget and a shared rate limit.'}
+        </p>
 
-  return (
-    <>
-      <Head>
-        <title>RouteWise - AI Model Router</title>
-        <meta name="description" content="Intelligent AI model routing with budget management" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              RouteWise 🎯
-            </h1>
-            <p className="text-xl text-gray-600">
-              Intelligent AI Model Router with Budget Management
-            </p>
-            <div className="mt-4">
-              <a
-                href="/admin"
-                className="text-indigo-600 hover:text-indigo-800 font-medium"
-              >
-                View Admin Dashboard →
-              </a>
-            </div>
+        <form onSubmit={submit} className="space-y-4 rounded-2xl bg-white p-6 shadow-xl">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Task">
+            {DEMO_TASKS.map(t => <button key={t.task} type="button" role="tab" aria-selected={t.task === task} onClick={() => choose(t.task)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium ${t.task === task ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>{t.label}</button>)}
           </div>
+          <label htmlFor="input" className="block text-sm font-semibold text-gray-700">{task === 'chat' ? 'Question' : 'Support ticket'}</label>
+          <textarea id="input" value={input} onChange={e => setInput(e.target.value)} rows={6} maxLength={DEMO_MAX_INPUT_CHARS} disabled={loading}
+            className="w-full resize-y rounded-lg border-2 border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-indigo-500 focus:outline-none" />
+          <p className="text-xs text-gray-500">{input.length} / {DEMO_MAX_INPUT_CHARS} characters. Inputs are not stored; telemetry keeps only a hash.</p>
+          <button type="submit" disabled={loading || !input.trim()}
+            className="w-full rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400">
+            {loading ? 'Routing…' : 'Run through the gateway'}</button>
+        </form>
 
-          {/* Query Input */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="query" className="block text-lg font-semibold text-gray-700 mb-3">
-                Enter your question:
-              </label>
-              <textarea
-                id="query"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g., What is quantum computing?"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors resize-none"
-                rows={4}
-                disabled={loading}
-              />
-              <button
-                type="submit"
-                disabled={loading || !query.trim()}
-                className="mt-4 w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Processing...' : 'Submit Query'}
-              </button>
-            </form>
+        {error && <div role="alert" className="rounded-lg border-2 border-red-200 bg-red-50 p-4 text-red-800">{error}</div>}
+
+        {answer && m && <section className="space-y-4 rounded-2xl bg-white p-6 shadow-xl">
+          <h2 className="text-xl font-bold text-gray-900">Answer</h2>
+          <pre className="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 font-sans text-gray-800">
+            {answer.output !== undefined ? JSON.stringify(answer.output, null, 2) : answer.answer}</pre>
+          {m.truncated && <p className="text-sm text-amber-700">The model hit the output limit, so this answer is cut short.</p>}
+          {m.accounting_status === 'failed' && <p className="text-sm text-amber-700">Answered, but the charge needs reconciliation (request {m.request_id}).</p>}
+
+          <h2 className="pt-2 text-xl font-bold text-gray-900">How it was routed</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-3 py-1 text-sm font-semibold ${TIER_STYLE[m.tier]}`}>{m.tier} tier</span>
+            <span className="font-mono text-sm">{m.model}</span>
+            {m.cache_hit && <span className="rounded-full bg-slate-200 px-3 py-1 text-xs">served from cache</span>}
+            {m.fallback_used && <span className="rounded-full bg-blue-100 px-3 py-1 text-xs">fell back to second provider</span>}
+            {m.escalated && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs">escalated after invalid output</span>}
           </div>
+          {m.route_reasons && m.route_reasons.length > 0 && <ul className="list-disc pl-6 text-sm text-gray-700">
+            {m.route_reasons.map(r => <li key={r}>{r}</li>)}</ul>}
+          {m.cache_hit && <p className="text-sm text-gray-700">Someone already ran this exact input, so the gateway returned the stored answer without calling a model.</p>}
+          <dl className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5">
+            {([['Cost', `$${m.cost_usd.toFixed(6)}`], ['Latency', `${m.latency_ms} ms`], ['Tokens in / out', `${m.tokens.input} / ${m.tokens.output}`],
+              ['Model calls', String(m.attempts)], ['Prompt', m.prompt_version]] as const).map(([k, v]) =>
+              <div key={k} className="rounded-lg bg-blue-50 p-3"><dt className="text-gray-600">{k}</dt><dd className="font-semibold text-gray-900">{v}</dd></div>)}
+          </dl>
+          {m.tenant_budget !== undefined && m.tenant_budget_remaining !== undefined && <div>
+            <div className="mb-1 flex justify-between text-sm text-gray-600"><span>Demo budget left this month</span>
+              <span className="font-semibold text-gray-900">${m.tenant_budget_remaining.toFixed(4)} of ${m.tenant_budget.toFixed(2)}</span></div>
+            <div className="h-2 overflow-hidden rounded-full bg-gray-200"><div className="h-full bg-green-500"
+              style={{ width: `${Math.min(100, (m.tenant_budget_remaining / m.tenant_budget) * 100)}%` }} /></div>
+          </div>}
+        </section>}
 
-          {/* Error Display */}
-          {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-8">
-              <h3 className="text-red-800 font-semibold text-lg mb-2">Error</h3>
-              <p className="text-red-600">{error}</p>
-            </div>
-          )}
-
-          {/* Response Display */}
-          {response && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Response</h2>
-              
-              {/* AI Answer */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                  {response.answer}
-                </p>
-              </div>
-
-              {/* Metadata */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Model Used</div>
-                  <div className={`inline-block px-3 py-1 rounded-full font-semibold ${getModelColor(response.metadata.model_used)}`}>
-                    {response.metadata.model_used}
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Difficulty Score</div>
-                  <div className={`text-2xl font-bold ${getDifficultyColor(response.metadata.difficulty_score)}`}>
-                    {response.metadata.difficulty_score.toFixed(2)}
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Tokens Used</div>
-                  <div className="text-2xl font-bold text-gray-800">
-                    {response.metadata.tokens_used}
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Request Cost</div>
-                  <div className="text-2xl font-bold text-gray-800">
-                    ${response.metadata.cost.toFixed(6)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Budget Info */}
-              <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-600">Budget Remaining</span>
-                  <span className="text-lg font-bold text-gray-900">
-                    ${response.metadata.remaining_budget.toFixed(2)}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-green-500 h-full transition-all duration-300"
-                    style={{
-                      width: `${(response.metadata.remaining_budget / 100) * 100}%`
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Running Total */}
-          {totalCost > 0 && (
-            <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
-              <div className="text-sm text-gray-600 mb-2">Session Total Cost</div>
-              <div className="text-3xl font-bold text-indigo-600">
-                ${totalCost.toFixed(6)}
-              </div>
-            </div>
-          )}
-
-          {/* Example Queries */}
-          <div className="mt-12 bg-white rounded-2xl shadow-xl p-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Try These Examples:</h3>
-            <div className="space-y-3">
-              <button
-                onClick={() => setQuery("What is 2+2?")}
-                className="block w-full text-left px-4 py-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-              >
-                <span className="text-green-600 font-medium">Easy:</span> What is 2+2?
-              </button>
-              <button
-                onClick={() => setQuery("How does photosynthesis work?")}
-                className="block w-full text-left px-4 py-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors"
-              >
-                <span className="text-yellow-600 font-medium">Medium:</span> How does photosynthesis work?
-              </button>
-              <button
-                onClick={() => setQuery("Explain quantum entanglement and its implications for computing in detail")}
-                className="block w-full text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
-              >
-                <span className="text-purple-600 font-medium">Hard:</span> Explain quantum entanglement and its implications for computing
-              </button>
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
-  );
+        {sessionCost > 0 && <p className="text-center text-sm text-gray-700">This session has cost ${sessionCost.toFixed(6)}.</p>}
+      </div>
+    </main>
+  </>;
 }
+
+export const getServerSideProps: GetServerSideProps<Props> = async ({ req, res }) => {
+  // protect() has already sent the 401 when it returns false; Next.js then renders nothing.
+  if (!protect(req, res, 'demo', false)) return { props: { demo: null } };
+  try {
+    const tenant = await findTenantByName(DEMO_TENANT);
+    return { props: { demo: tenant?.active ? { budget: tenant.monthly_budget, rpm: tenant.rpm_limit } : null } };
+  } catch { return { props: { demo: null } }; }
+};

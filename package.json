@@ -7,9 +7,29 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit --incremental false",
+    "eval": "node --import tsx scripts/eval.ts",
+    "migrations:check": "node --import tsx scripts/check-migrations.ts",
+    "test:postgres": "node scripts/test-postgres.mjs",
+    "eval:regression": "vitest run tests/offline-regression.test.ts",
+    "eval:report": "node --import tsx scripts/report.ts",
+    "eval:failures": "node --import tsx scripts/failures.ts",
+    "eval:review": "node --import tsx scripts/human-review.ts",
+    "eval:compare": "node --import tsx scripts/compare.ts",
+    "eval:pareto": "node --import tsx scripts/pareto.ts",
+    "maintenance": "node --import tsx scripts/maintenance.ts",
+    "tenant:create": "node --import tsx scripts/create-tenant.ts",
+    "eval:promote": "node --import tsx scripts/dataset-review.ts",
+    "experiment": "node --import tsx scripts/experiment.ts",
+    "load-test": "node scripts/load-test.mjs"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@supabase/supabase-js": "^2.90.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.0.9",
@@ -27,5 +47,9 @@
     "react-dom": "^19.2.3",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "tsx": "4.21.0",
+    "vitest": "4.0.18"
   }
 }

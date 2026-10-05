@@ -1,0 +1,11 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {validateDataset} from '../eval/schema';
+const [input,output,version,reviewer,date,ids,confirmation]=process.argv.slice(2);
+if(!input||!output||!version||!reviewer?.trim()||!date||!ids||confirmation!=='--confirm-human-review') throw new Error('Usage: eval:promote INPUT OUTPUT NEW_VERSION REVIEWER ISO_DATE CASE_IDS --confirm-human-review');
+const dataset=validateDataset(JSON.parse(readFileSync(input,'utf8')));
+if(dataset.version===version||!Number.isFinite(Date.parse(date)))throw new Error('New version and valid review date required');
+const selected=new Set(ids.split(','));
+for(const id of selected)if(!dataset.cases.some(c=>c.id===id))throw new Error(`Unknown case ${id}`);
+const promoted=validateDataset({...dataset,version,cases:dataset.cases.map(c=>selected.has(c.id)?{...c,reviewed:true,reviewer,reviewed_at:date}:c)});
+writeFileSync(output,JSON.stringify(promoted,null,2)+'\n',{flag:'wx'});
+console.log('Wrote explicitly attested human review metadata; correctness remains the reviewer responsibility.');

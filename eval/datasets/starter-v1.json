@@ -1,0 +1,161 @@
+{
+  "version": "starter-v1",
+  "cases": [
+    {
+      "id": "extract-city",
+      "prompt": "Extract city and country as JSON from: Paris is in France.",
+      "task_type": "extraction",
+      "intended_difficulty": "low",
+      "scoring_method": "fields",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": {
+        "city": "Paris",
+        "country": "France"
+      }
+    },
+    {
+      "id": "format-lines",
+      "prompt": "Return exactly two lines: alpha then beta.",
+      "task_type": "formatting",
+      "intended_difficulty": "low",
+      "scoring_method": "exact",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": "alpha\nbeta"
+    },
+    {
+      "id": "classify-positive",
+      "prompt": "Classify sentiment as positive, negative or neutral: I loved this meal. Return only the label.",
+      "task_type": "classification",
+      "intended_difficulty": "low",
+      "scoring_method": "exact",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": "positive"
+    },
+    {
+      "id": "fact-planet",
+      "prompt": "Which planet is known as the red planet? Return its name only.",
+      "task_type": "factual_qa",
+      "intended_difficulty": "low",
+      "scoring_method": "exact",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": "Mars"
+    },
+    {
+      "id": "summarize",
+      "prompt": "Summarize in one sentence: The bus arrived ten minutes late. Maya missed her connection and took a taxi.",
+      "task_type": "summarization",
+      "intended_difficulty": "mid",
+      "scoring_method": "rubric",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "rubric": "Score 0-1 for retaining late bus, missed connection, and taxi without invented facts; one sentence."
+    },
+    {
+      "id": "coding-add",
+      "prompt": "Write a JavaScript function add(a,b) returning their sum.",
+      "task_type": "coding",
+      "intended_difficulty": "mid",
+      "scoring_method": "fixture",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "expected_properties": {
+        "fixture": "javascript-add"
+      },
+      "notes": "Unscored until an approved isolated executable fixture is supplied. Do not execute generated code in the CLI."
+    },
+    {
+      "id": "reason-parity",
+      "prompt": "Prove that the sum of two odd integers is even.",
+      "task_type": "reasoning",
+      "intended_difficulty": "mid",
+      "scoring_method": "rubric",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "rubric": "Score 0-1 for a valid general proof using 2a+1 and 2b+1, or equivalent; not just examples."
+    },
+    {
+      "id": "compare",
+      "prompt": "Compare insertion sort and merge sort for almost-sorted small arrays versus very large arrays.",
+      "task_type": "comparison",
+      "intended_difficulty": "high",
+      "scoring_method": "rubric",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "rubric": "Score 0-1 for correct complexity, adaptivity, memory tradeoffs, and contextual recommendation. Penalize unsupported universal claims."
+    },
+    {
+      "id": "constraints",
+      "prompt": "Return exactly three lines containing red, green, blue respectively; no bullets or introduction.",
+      "task_type": "multi_constraint",
+      "intended_difficulty": "mid",
+      "scoring_method": "exact",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": "red\ngreen\nblue"
+    },
+    {
+      "id": "json-person",
+      "prompt": "Return JSON only with name Ada and age 36.",
+      "task_type": "structured_output",
+      "intended_difficulty": "low",
+      "scoring_method": "json",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": {
+        "name": "Ada",
+        "age": 36
+      },
+      "expected_properties": {
+        "schema": {
+          "type": "object",
+          "required": [
+            "name",
+            "age"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "age": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "format-bullets",
+      "prompt": "Return two lines, each starting with a hyphen, containing apple and pear.",
+      "task_type": "formatting",
+      "intended_difficulty": "low",
+      "scoring_method": "format",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "expected_properties": {
+        "lines": 2,
+        "contains": [
+          "- apple",
+          "- pear"
+        ]
+      }
+    },
+    {
+      "id": "extract-zero",
+      "prompt": "Extract count and active as JSON: count is zero and active is false.",
+      "task_type": "extraction",
+      "intended_difficulty": "low",
+      "scoring_method": "fields",
+      "reviewed": false,
+      "source": "generated starter; not benchmark evidence",
+      "reference_answer": {
+        "count": 0,
+        "active": false
+      }
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+import { getModel } from '@/lib/model-registry';
+import type { ModelTier } from '@/lib/model-registry';
+import type { Admission } from '@/lib/request-run';
 // Tracks API spending and enforces monthly budget limits
 
 import { supabaseAdmin } from './supabase';
@@ -5,15 +8,15 @@ import { BudgetStatus, ModelName } from '@/types';
 import { logger } from '@/utils/logger';
 
 // Get current month in YYYY-MM format
-function getCurrentMonth(): string {
+export function getCurrentMonth(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
 }
 
 // Get budget limit from env vars or default to $100
-function getBudgetLimit(): number {
+export function getBudgetLimit(): number {
   const limit = process.env.MONTHLY_BUDGET_LIMIT;
   return limit ? parseFloat(limit) : 100.0;
 }
@@ -29,78 +32,28 @@ export async function getCurrentMonthUsage(): Promise<BudgetStatus> {
   const currentMonth = getCurrentMonth();
   const budgetLimit = getBudgetLimit();
 
-  // Try to get existing record
-  const { data, error } = await supabaseAdmin
-    .from('budget_tracking')
-    .select('*')
-    .eq('month', currentMonth)
-    .single();
-
-  if (error && error.code !== 'PGRST116') {
-    // PGRST116 just means no rows found
-    logger.error('Error fetching budget status', error);
-    throw new Error('Failed to fetch budget status');
-  }
-
-  // Create new record if this is the first request of the month
-  if (!data) {
-    const { data: newData, error: insertError } = await supabaseAdmin
-      .from('budget_tracking')
-      .insert({
-        month: currentMonth,
-        total_cost: 0,
-        total_requests: 0,
-        cheap_model_count: 0,
-        mid_model_count: 0,
-        expert_model_count: 0,
-        budget_limit: budgetLimit
-      })
-      .select()
-      .single();
-
-    if (insertError || !newData) {
-      logger.error('Error creating budget record', insertError);
-      throw new Error('Failed to create budget record');
-    }
-
-    return newData as BudgetStatus;
-  }
-
-  return data as BudgetStatus;
+  const { data, error } = await supabaseAdmin.rpc('ensure_budget_month', {
+    p_month: currentMonth, p_limit: budgetLimit,
+  });
+  if (error || !data) throw new Error('Failed to fetch budget status');
+  return (Array.isArray(data) ? data[0] : data) as BudgetStatus;
 }
 
 // Add a request's cost to this month's budget
 export async function addUsage(cost: number, model: ModelName): Promise<void> {
   const currentMonth = getCurrentMonth();
-  const usage = await getCurrentMonthUsage();
-
-  // Figure out which model counter to increment
-  let modelCountField = 'cheap_model_count';
-  if (model === 'gpt-4') {
-    modelCountField = 'expert_model_count';
-  }
-
-  // Update the totals
-  const { error } = await supabaseAdmin
-    .from('budget_tracking')
-    .update({
-      total_cost: usage.total_cost + cost,
-      total_requests: usage.total_requests + 1,
-      [modelCountField]: (usage as any)[modelCountField] + 1
-    })
-    .eq('month', currentMonth);
-
-  if (error) {
-    logger.error('Error updating budget tracking', error);
-    throw new Error('Failed to update budget tracking');
-  }
+  const { data, error } = await supabaseAdmin.rpc('increment_budget_usage', {
+    p_month: currentMonth, p_cost: cost, p_model: model, p_tier: getModel(model).tier, p_limit: getBudgetLimit(),
+  });
+  if (error || !data) throw new Error('Failed to update budget tracking');
+  const usage = (Array.isArray(data) ? data[0] : data) as BudgetStatus;
 
   // Log warnings if we're getting close to budget limit
-  const newTotal = usage.total_cost + cost;
+  const newTotal = usage.total_cost;
   const percentage = (newTotal / usage.budget_limit) * 100;
   const alertThreshold = getAlertThreshold();
 
-  if (percentage >= alertThreshold && usage.total_cost / usage.budget_limit * 100 < alertThreshold) {
+  if (percentage >= alertThreshold && (usage.total_cost - cost) / usage.budget_limit * 100 < alertThreshold) {
     logger.warn(`⚠️ BUDGET ALERT: ${percentage.toFixed(1)}% of monthly budget used!`, {
       total_cost: newTotal,
       budget_limit: usage.budget_limit,
@@ -141,17 +94,8 @@ export async function resetBudget(month?: string): Promise<void> {
   const targetMonth = month || getCurrentMonth();
   const budgetLimit = getBudgetLimit();
 
-  const { error } = await supabaseAdmin
-    .from('budget_tracking')
-    .upsert({
-      month: targetMonth,
-      total_cost: 0,
-      total_requests: 0,
-      cheap_model_count: 0,
-      mid_model_count: 0,
-      expert_model_count: 0,
-      budget_limit: budgetLimit
-    });
+  // One transaction clears the month row and its spend shards.
+  const { error } = await supabaseAdmin.rpc('reset_budget_month', { p_month: targetMonth, p_limit: budgetLimit });
 
   if (error) {
     logger.error('Error resetting budget', error);
@@ -159,4 +103,24 @@ export async function resetBudget(month?: string): Promise<void> {
   }
 
   logger.info(`Budget reset for month: ${targetMonth}`);
+}
+
+// Tenant and global spend for this month, read in one round trip.
+export async function getTenantAdmission(tenantId: string): Promise<Admission> {
+  const { data, error } = await supabaseAdmin.rpc('tenant_admission', {
+    p_tenant: tenantId, p_month: getCurrentMonth(), p_global_limit: getBudgetLimit(),
+  });
+  if (error || !data) throw new Error('Failed to fetch tenant budget');
+  return {
+    tenantSpent: Number(data.tenant_spent), tenantBudget: Number(data.tenant_budget),
+    globalSpent: Number(data.global_spent), globalLimit: Number(data.global_limit),
+  };
+}
+
+// Charges the tenant's month and the global month in one database transaction.
+export async function settleTenantUsage(tenantId: string, cost: number, model: ModelName, tier: ModelTier): Promise<void> {
+  const { data, error } = await supabaseAdmin.rpc('settle_request', {
+    p_tenant: tenantId, p_month: getCurrentMonth(), p_cost: cost, p_model: model, p_limit: getBudgetLimit(), p_tier: tier,
+  });
+  if (error || !data) throw new Error('Failed to settle tenant usage');
 }

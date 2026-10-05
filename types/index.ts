@@ -1,6 +1,7 @@
 // Type definitions for the project
 
-export type ModelName = 'gpt-3.5-turbo' | 'gpt-4';
+// Historical model strings are retained even when runtime configuration changes.
+export type ModelName = string;
 
 export type DifficultyScore = number;
 
@@ -32,18 +33,19 @@ export interface RouterLog {
 }
 
 // API types
-export interface RouteQueryRequest {
-  query: string;
-}
-
-export interface RouteQueryResponse {
+/** The body /api/generate and the demo endpoint return for an answered request. */
+export interface GatewayAnswer {
   answer: string;
+  /** Parsed JSON, for tasks with structured output. */
+  output?: unknown;
   metadata: {
-    model_used: ModelName;
-    difficulty_score: number;
-    tokens_used: number;
-    cost: number;
-    remaining_budget: number;
+    request_id: string; task_type: string; prompt_version: string; model: string;
+    tier: import('@/lib/model-registry').ModelTier; provider?: string;
+    cache_hit: boolean; fallback_used: boolean; escalated: boolean; truncated: boolean; attempts: number;
+    /** Absent on cache hits, which skip routing. */
+    route_reasons?: string[]; difficulty_score?: number | null;
+    tokens: { input: number; output: number; total: number }; cost_usd: number; accounting_status: string;
+    tenant_budget?: number; tenant_budget_remaining?: number; latency_ms: number;
   };
 }
 
@@ -63,19 +65,30 @@ export interface ModelResponse {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+  /** The provider stopped at the output cap. */
+  truncated?: boolean;
 }
 
-// Admin dashboard stats
-export interface UsageStats {
-  total_requests: number;
-  total_cost: number;
-  budget_remaining: number;
-  model_distribution: {
-    [key: string]: number;
+// Admin dashboard: production telemetry for whole UTC days, optionally for one tenant
+// (gateway_dashboard in migration 012).
+type ModelTierName = import('@/lib/model-registry').ModelTier;
+export interface DashboardStats {
+  window_start: string; window_end: string; days: number; tenant: string | null;
+  tenants: { id: string; name: string }[];
+  summary: {
+    requests: number; succeeded: number; cost_usd: number; provider_requests: number;
+    cache_hits: number; fallbacks: number; escalations: number; rate_limited: number; budget_rejected: number;
+    unsettled: number; unknown_usage: number; p50_ms: number | null; p95_ms: number | null;
   };
-  recent_logs: RouterLog[];
-  daily_costs: {
-    date: string;
-    cost: number;
+  tiers: { tier: ModelTierName; requests: number; succeeded: number; cost_usd: number; p50_ms: number | null; p95_ms: number | null }[];
+  models: Record<string, number>;
+  daily: { date: string; requests: number; succeeded: number; cost_usd: number; cache: number; low: number; mid: number; high: number }[];
+  recent: {
+    request_id: string; timestamp: string; tenant_name: string | null; task_type: string | null;
+    selected_model: string | null; selected_tier: ModelTierName | null; routing_policy_version: string;
+    cache_hit: boolean; fallback_used: boolean; escalated: boolean; application_succeeded: boolean;
+    failure_stage: string | null; error_category: string | null; cost_usd: number | null; latency_ms: number;
   }[];
+  /** This month's budget: the selected tenant's, or the global one. */
+  budget: { scope: 'tenant' | 'global'; month: string; limit: number; spent: number };
 }
