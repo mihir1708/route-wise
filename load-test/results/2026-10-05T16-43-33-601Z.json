@@ -1,0 +1,49 @@
+{
+  "postgres": "16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)",
+  "cores": 4,
+  "clients": 32,
+  "threads": 4,
+  "seconds": 20,
+  "scenarios": [
+    {
+      "name": "one-tenant",
+      "tenants": 1,
+      "processed": 9381,
+      "failed": 0,
+      "tps": 468.356528,
+      "p50": 58.186,
+      "p95": 158.171,
+      "p99": 219.35
+    },
+    {
+      "name": "many-tenants",
+      "tenants": 64,
+      "processed": 12333,
+      "failed": 0,
+      "tps": 615.408045,
+      "p50": 44.827,
+      "p95": 114.451,
+      "p99": 160.307
+    },
+    {
+      "name": "many-tenants, no global row (diagnostic)",
+      "tenants": 64,
+      "processed": 28471,
+      "failed": 0,
+      "tps": 1422.583284,
+      "p50": 21.485,
+      "p95": 31.463,
+      "p99": 39.198
+    }
+  ],
+  "rate_limit": {
+    "processed": 397062,
+    "failed": 0,
+    "tps": 19867.445289,
+    "p50": 1.235,
+    "p95": 2.988,
+    "p99": 4.748,
+    "limit": 100,
+    "admitted": 100
+  }
+}

@@ -23,7 +23,8 @@
     "maintenance": "node --import tsx scripts/maintenance.ts",
     "tenant:create": "node --import tsx scripts/create-tenant.ts",
     "eval:promote": "node --import tsx scripts/dataset-review.ts",
-    "experiment": "node --import tsx scripts/experiment.ts"
+    "experiment": "node --import tsx scripts/experiment.ts",
+    "load-test": "node scripts/load-test.mjs"
   },
   "engines": {
     "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
