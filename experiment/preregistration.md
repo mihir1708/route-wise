@@ -4,7 +4,7 @@ Written before any live model call. `npm run experiment -- --live` checks the pi
 
 ## Question
 
-Does rules-v1 routing keep the success rate within 3 points of sending every request to the premium tier, and how much does it cut the cost per successful task?
+Does rules-v1 routing keep the success rate within 3 points of sending every request to the premium tier, without losing more than one ticket-run in any class, and how much does it cut the cost per successful task?
 
 ## Pinned values
 
@@ -16,7 +16,7 @@ Does rules-v1 routing keep the success rate within 3 points of sending every req
 - Models: `low: gpt-5.6-luna > claude-haiku-4-5; mid: gpt-5.6-terra > claude-sonnet-5-5; high: gpt-5.6-sol > claude-opus-5-5`
 - Pricing: `gateway-2026-10`
 - Judge: `support-judge-v1 on the high tier, pass at 4/5`
-- Bar: `routed success at most 3 points below all-premium, overall and in each class`
+- Bar: `routed success at most 3 points below all-premium overall, and at most 1 ticket-run below in each class`
 - Runs: `2`
 
 The dataset hash covers the file's exact bytes, including each item's review record, so it is pinned again once the review is recorded and before approval.
@@ -65,14 +65,14 @@ A failed or refused request counts as a failure and is never dropped.
 
 ## The bar, and what gets reported
 
-- **The bar:** routed success may be at most 3 points below all-premium, both overall and in each of the three classes.
+- **The bar:** routed success may be at most 3 points below all-premium overall (2 of 90 ticket-runs), and at most one ticket-run below all-premium in each of the three classes (1 of 30, or 3.3 points). A ticket-run is one ticket in one run.
 - **If routed passes,** the result reads: "routing cut cost per successful task by X% compared with all-premium, at Y% success (all-premium Z%)".
 - **If routed fails,** the report shows the gaps and gives no savings figure. The dataset, prompts and rules are not tuned and rerun for a better number. Any later attempt is a new pre-registration with a new dataset or policy version, and both results stay published.
 - **Every run is kept** in `experiment/results/`, including smoke runs and runs that stopped early. Only the full approved run can report savings.
 
 ## Known limitations
 
-- **The sample is small.** With 15 items per class and 2 runs, one item failing in one run moves a class by 3.3 points. The per-class bar therefore allows no net loss in any class, while the overall bar allows two item-runs.
+- **The sample is small.** With 15 items per class and 2 runs, one ticket failing in one run moves a class by 3.3 points, so a 3-point class bar would allow no loss at all. That is why the class bar is one ticket-run. Even so, 45 tickets cannot show a difference of a few points with statistical confidence; the result is evidence, not proof.
 - **The data is synthetic.** The tickets were drafted with AI help and then reviewed by a person. They are not real customer traffic.
 - **The judge may favor all-premium.** It uses the same models as all-premium and may prefer their answers. That bias works against routed, so it makes a passing result more conservative.
 - **Prices change.** They come from the providers' pricing pages as of the pricing version, so savings are relative to those prices.

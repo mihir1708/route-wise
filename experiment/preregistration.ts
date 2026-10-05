@@ -2,7 +2,7 @@
 // A live run refuses to start if the code or data drifted from it, or if nobody approved it.
 import type { ModelConfig, ModelTier } from '@/lib/model-registry';
 import { CONFIGS } from './harness';
-import { MAX_SUCCESS_GAP } from './report';
+import { MAX_CLASS_LOSS_RUNS, MAX_SUCCESS_GAP } from './report';
 import { JUDGE_PASS_SCORE, JUDGE_VERSION } from './scoring';
 
 export const DEFAULT_RUNS = 2;
@@ -29,7 +29,7 @@ export function pinnedValues(p: PinnedInputs): Record<string, string> {
     'Models': tiers.map(t => `${t}: ${enabled.filter(m => m.tier === t).map(m => m.id).join(' > ')}`).join('; '),
     'Pricing': [...new Set(enabled.map(m => m.pricingVersion))].join(', '),
     'Judge': `${JUDGE_VERSION} on the high tier, pass at ${JUDGE_PASS_SCORE}/5`,
-    'Bar': `routed success at most ${Math.round(MAX_SUCCESS_GAP * 100)} points below all-premium, overall and in each class`,
+    'Bar': `routed success at most ${Math.round(MAX_SUCCESS_GAP * 100)} points below all-premium overall, and at most ${MAX_CLASS_LOSS_RUNS} ticket-run below in each class`,
     'Runs': String(p.runs),
   };
 }

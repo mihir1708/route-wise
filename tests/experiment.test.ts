@@ -186,11 +186,23 @@ describe('report', () => {
     expect(md).not.toContain('over the cost limit');
   });
 
-  it('withholds savings when one class falls more than 3 points behind', () => {
+  it('allows one ticket-run lost in a class while overall stays within 3 points', () => {
     const s = summarize([...outcomes('all-premium', 0.01), ...outcomes('routed', 0.002, { complex: 1 })]);
-    expect(s.bar?.passed).toBe(false);
+    expect(s.bar).toMatchObject({ passed: true, allowed: { overall: 0.03, complex: expect.closeTo(1 / 15, 10) } });
     expect(s.bar?.gaps.complex).toBeCloseTo(-1 / 15, 10);
     expect(s.bar?.gaps.overall).toBeCloseTo(-1 / 45, 10);
+    expect(renderMarkdown(s, { title: 'T', lines: [] })).toContain('one ticket-run (6.7 points here) below in each class');
+  });
+
+  it('withholds savings when a class loses two ticket-runs, even with overall inside 3 points', () => {
+    const s = summarize([
+      ...outcomes('all-premium', 0.01, {}, 1), ...outcomes('all-premium', 0.01, {}, 2),
+      ...outcomes('routed', 0.002, { complex: 1 }, 1), ...outcomes('routed', 0.002, { complex: 1 }, 2),
+    ]);
+    expect(s.bar?.passed).toBe(false);
+    expect(s.bar?.gaps.overall).toBeCloseTo(-2 / 90, 10);
+    expect(s.bar?.gaps.complex).toBeCloseTo(-2 / 30, 10);
+    expect(s.bar?.allowed.complex).toBeCloseTo(1 / 30, 10);
     expect(s.routed_savings).toBeNull();
     expect(renderMarkdown(s, { title: 'T', lines: [] })).toContain('because routed did not meet the pre-registered bar');
   });
