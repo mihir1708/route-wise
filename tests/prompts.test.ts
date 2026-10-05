@@ -25,3 +25,9 @@ it('chat keeps the original RouteWise prompt and passes input through unchanged'
   const chat = getPrompt('chat')!;
   expect(chat.system).toBe(DEFAULT_SYSTEM_PROMPT); expect(chat.render('hello?')).toBe('hello?'); expect(chat.maxOutputTokens).toBe(1000);
 });
+
+it('troubleshoot asks for a length that fits its output cap, so answers are not cut off', () => {
+  const p = getPrompt('troubleshoot')!;
+  expect(promptId(p)).toBe('troubleshoot@v2'); expect(p.system).toContain('under 500 words');
+  expect(500 * 1.5).toBeLessThan(p.maxOutputTokens); // generous tokens per word, Markdown included
+});
