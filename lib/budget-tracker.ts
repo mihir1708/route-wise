@@ -1,4 +1,6 @@
 import { getModel } from '@/lib/model-registry';
+import type { ModelTier } from '@/lib/model-registry';
+import type { Admission } from '@/lib/request-run';
 // Tracks API spending and enforces monthly budget limits
 
 import { supabaseAdmin } from './supabase';
@@ -6,7 +8,7 @@ import { BudgetStatus, ModelName } from '@/types';
 import { logger } from '@/utils/logger';
 
 // Get current month in YYYY-MM format
-function getCurrentMonth(): string {
+export function getCurrentMonth(): string {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
@@ -14,7 +16,7 @@ function getCurrentMonth(): string {
 }
 
 // Get budget limit from env vars or default to $100
-function getBudgetLimit(): number {
+export function getBudgetLimit(): number {
   const limit = process.env.MONTHLY_BUDGET_LIMIT;
   return limit ? parseFloat(limit) : 100.0;
 }
@@ -110,4 +112,24 @@ export async function resetBudget(month?: string): Promise<void> {
   }
 
   logger.info(`Budget reset for month: ${targetMonth}`);
+}
+
+// Tenant and global spend for this month, read in one round trip.
+export async function getTenantAdmission(tenantId: string): Promise<Admission> {
+  const { data, error } = await supabaseAdmin.rpc('tenant_admission', {
+    p_tenant: tenantId, p_month: getCurrentMonth(), p_global_limit: getBudgetLimit(),
+  });
+  if (error || !data) throw new Error('Failed to fetch tenant budget');
+  return {
+    tenantSpent: Number(data.tenant_spent), tenantBudget: Number(data.tenant_budget),
+    globalSpent: Number(data.global_spent), globalLimit: Number(data.global_limit),
+  };
+}
+
+// Charges the tenant's month and the global month in one database transaction.
+export async function settleTenantUsage(tenantId: string, cost: number, model: ModelName, tier: ModelTier): Promise<void> {
+  const { data, error } = await supabaseAdmin.rpc('settle_request', {
+    p_tenant: tenantId, p_month: getCurrentMonth(), p_cost: cost, p_model: model, p_limit: getBudgetLimit(), p_tier: tier,
+  });
+  if (error || !data) throw new Error('Failed to settle tenant usage');
 }

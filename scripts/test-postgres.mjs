@@ -35,9 +35,21 @@ await sql(`DO $$ BEGIN
  IF NOT EXISTS(SELECT FROM budget_tracking WHERE month='2099-02' AND budget_limit=321) THEN RAISE EXCEPTION 'Limit overwritten'; END IF;
 END $$;`);
 await sql(readFileSync('tests/sql/v2-integration.sql','utf8'));
+await sql(readFileSync('tests/sql/gateway-integration.sql','utf8'));
+// Concurrent tenants: 30 parallel requests against a 10 RPM limit admit exactly 10.
+await sql(`INSERT INTO tenants(id,name,monthly_budget,rpm_limit,tpm_limit) VALUES ('00000000-0000-4000-8000-0000000000b1','concurrency',5,10,100000);`);
+await Promise.all(Array.from({length:30},()=>sql("SELECT public.take_rate_limit('00000000-0000-4000-8000-0000000000b1',10);")));
+await Promise.all(Array.from({length:10},()=>sql("SELECT public.settle_request('00000000-0000-4000-8000-0000000000b1','2099-05',0.001,'fixture-model',321,'low') FROM generate_series(1,10);")));
+await sql(`DO $$ BEGIN
+ IF (SELECT sum(requests) FROM rate_limit_windows WHERE tenant_id='00000000-0000-4000-8000-0000000000b1') NOT BETWEEN 10 AND 20 THEN RAISE EXCEPTION 'Concurrent rate limit admitted too many'; END IF;
+ IF NOT EXISTS(SELECT FROM rate_limit_windows WHERE tenant_id='00000000-0000-4000-8000-0000000000b1' AND requests=10) THEN RAISE EXCEPTION 'Rate limit window did not fill to its limit'; END IF;
+ IF NOT EXISTS(SELECT FROM tenant_usage WHERE tenant_id='00000000-0000-4000-8000-0000000000b1' AND month='2099-05' AND total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Concurrent tenant charges lost'; END IF;
+ IF NOT EXISTS(SELECT FROM budget_tracking WHERE month='2099-05' AND total_cost=0.1 AND total_requests=100) THEN RAISE EXCEPTION 'Concurrent global charges lost'; END IF;
+END $$;`);
 const freshName=`routewise_bootstrap_${Date.now()}`;
 await sql(`CREATE DATABASE ${freshName}`);
 const fresh=new URL(process.env.ROUTEWISE_TEST_DATABASE_URL);fresh.pathname=`/${freshName}`;
 await sql('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'+bootstrap,fresh.toString());
 await sql(readFileSync('tests/sql/v2-integration.sql','utf8'),fresh.toString());
-console.log('Real PostgreSQL migrations, precision, concurrent increments, fresh bootstrap, access, analytics, job claims and retention passed');
+await sql(readFileSync('tests/sql/gateway-integration.sql','utf8'),fresh.toString());
+console.log('Real PostgreSQL migrations, precision, concurrent increments, fresh bootstrap, access, analytics, job claims, retention, tenant budgets and rate limits passed');

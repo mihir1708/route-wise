@@ -75,3 +75,14 @@ read/modify/write implementation. New atomic-budget tests verify RPC integration
 `npm run migrations:check` checks bootstrap parity, not SQL execution. The real
 PostgreSQL workflow uses `npm run test:postgres` against an explicitly opted-in
 empty disposable database, including concurrent connections and numeric checks.
+
+## 009: tenants and rate limits
+
+Adds `tenants` (hashed API keys, monthly budget, RPM/TPM limits, allowed tiers),
+`tenant_usage`, `rate_limit_windows` and new `request_runs` columns (tenant, task
+type, priority, prompt version, latency target). Its RPCs take a rate-limit slot
+under a row lock, read tenant and global spend together, and charge tenant and
+global spend in one transaction. It also creates the keyless `demo` tenant used by
+the chat UI and extends retention to delete rate-limit windows older than a day.
+`npm run test:postgres` covers it, including 30 concurrent requests against a
+10 RPM limit and 100 concurrent tenant charges.
