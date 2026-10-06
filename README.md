@@ -145,4 +145,4 @@ Run `supabase-schema.sql` once in a new Supabase project's SQL editor to create 
 - Routing is rule-based. The experiment shows where the rules fall short, which is the data a learned router would need.
 - Only OpenAI and Anthropic are supported, one model of each per tier.
 
-Older tooling from the project's first version is described in [docs/LEGACY_EVAL.md](docs/LEGACY_EVAL.md), and earlier engineering notes are in [docs/](docs/).
+Older tooling from the project's first version is described in [docs/LEGACY_EVAL.md](docs/LEGACY_EVAL.md).

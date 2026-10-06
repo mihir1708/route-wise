@@ -61,8 +61,7 @@ Apply migrations before deploying code, preferably with traffic paused because
 005 changes an RPC signature. Existing monthly balances and budget limits are
 preserved; historical model strings/logs are not rewritten. Legacy model counters
 are frozen after 005; new model_usage counts start at migration time, not at the
-beginning of historical records. See `migrations/README.md` and
-`docs/IMPLEMENTATION.md` for validation limits.
+beginning of historical records. See `migrations/README.md` for what each file changes.
 
 ## Retention
 
