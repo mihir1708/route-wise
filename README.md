@@ -77,7 +77,7 @@ The benchmark is 45 synthetic support tickets for a made-up invoicing product, d
 | --- | --- | --- | --- | --- | --- |
 | All premium (high tier only) | 84.4% | 86.7% | 96.7% | 70.0% | $0.0132 |
 | **Routed** | **81.1%** | 93.3% | 100% | 50.0% | **$0.0071** |
-| All small (low tier only) | 81.1% | 86.7% | 100% | 56.7% | $0.0004 |
+| All small (low tier only) | 81.1% | 86.7% | 100% | 40.0% | $0.0004 |
 
 **Routing did not clear the bar.** It matched or beat the premium setup on simple and standard tickets at about half the cost per successful answer, but lost 20 points on complex tickets. Because the bar was missed, the pre-registration rules out claiming a savings figure from this run.
 
